@@ -1,0 +1,4 @@
+ann
+happy
+sad
+hungry

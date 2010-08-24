@@ -1,0 +1,25 @@
+<!--
+ ! Excerpted from "Programming Clojure",
+ ! published by The Pragmatic Bookshelf.
+ ! Copyrights apply to this code. It may not be used to create training material, 
+ ! courses, books, articles, and the like. Contact us if you are in doubt.
+ ! We make no guarantees that this code is fit for any purpose. 
+ ! Visit http://www.pragmaticprogrammer.com/titles/shcloj for more book information.
+-->
+<project name="example" default="compile">
+
+	<property name="src" location="src"/>
+	<property name="build" location="classes"/>
+
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}"/>
+	</target>
+
+	<target name="compile" depends="init"
+	        description="Compile Java sources.">
+		<javac srcdir="${src}" 
+		       destdir="${build}"/>
+	</target>
+
+</project>

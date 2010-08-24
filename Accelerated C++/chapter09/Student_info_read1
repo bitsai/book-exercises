@@ -1,0 +1,7 @@
+istream& Student_info::read(istream& in)
+{
+	in >> name >> midterm >> final;
+	read_hw(in, homework);
+	return in;
+}
+

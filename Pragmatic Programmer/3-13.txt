@@ -1,0 +1,14 @@
+# Add a product
+# to the 'on-order' list
+M AddProduct
+F id	int
+F name	char[30]
+F order_code	int
+E
+
+# Remove a product
+# from the 'on-order' list
+M RemoveProduct
+F id	int
+E
+

@@ -1,0 +1,14 @@
+<noun> cat
+<noun> dog
+<noun> table
+<noun_phrase> <adjective> <noun_phrase>
+<noun_phrase> <noun>
+<adjective> large
+<adjective> brown
+<adjective> absurd
+<verb> jumps
+<verb> sits
+<location> on the stairs
+<location> under the sky
+<location> wherever it wants
+<sentence> the <noun_phrase> <verb> <location>
