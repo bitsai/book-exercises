@@ -54,18 +54,18 @@
 (defn opposite-dirs? [dir1 dir2]
   (= dir1 (opposite-dir dir2)))
 
-(defn turn [bike newdir]
-  (if (opposite-dirs? newdir (:dir bike)) bike
-      (assoc bike :dir newdir)))
+(defn turn [bike new-dir]
+  (if (opposite-dirs? new-dir (:dir bike)) bike
+      (assoc bike :dir new-dir)))
 
 ;; mutable state ahead
 (defn reset-game [bike]
   (dosync (ref-set bike (create-bike)))
   nil)
 
-(defn update-direction [bike newdir]
-  (when newdir
-    (dosync (alter bike turn newdir))))
+(defn update-direction [bike new-dir]
+  (when new-dir
+    (dosync (alter bike turn new-dir))))
 
 (defn update-positions [bike]
   (dosync (alter bike move))
