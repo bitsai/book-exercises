@@ -1,4 +1,4 @@
-(ns tron
+(ns light-cycle
   (:import (java.awt Color Dimension)
 	   (java.awt.event ActionListener KeyListener)
 	   (javax.swing JFrame JOptionPane JPanel Timer))
