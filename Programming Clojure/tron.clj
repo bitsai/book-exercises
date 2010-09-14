@@ -22,26 +22,25 @@
 
 (defn add-points [& pts] (vec (apply map + pts)))
 
-(defn point-to-screen-rect [[x y]]
-  (map #(* point-size %) [x y 1 1]))
+(defn point-to-screen-rect [[x y]] (map #(* point-size %) [x y 1 1]))
 
 (defn create-bike []
-  {:body (list [1 1])
+  {:body [[1 1]]
    :dir [1 0]
    :color (Color. 255 255 0)})
 
 (defn move [{:keys [body dir] :as bike}]
-  (assoc bike :body (cons (add-points (first body) dir) body)))
+  (let [new-point (add-points (first body) dir)
+	new-body (cons new-point body)]
+    (assoc bike :body new-body)))
 
-(defn win? [{body :body}] false)
+(defn win? [bike] false)
 
-(defn head-overlaps-body? [{[head & body] :body}]
-  (some #(= head %) body))
+(defn head-overlaps-body? [{[head & body] :body}] (some #(= head %) body))
 
-(def lose? head-overlaps-body?)
+(defn lose? [bike] (head-overlaps-body? bike))
 
-(defn opposite-dirs? [dir1 dir2]
-  (= (opposite-dir dir1) dir2))
+(defn opposite-dirs? [dir1 dir2] (= dir1 (opposite-dir dir2)))
 
 (defn turn [bike newdir]
   (if (opposite-dirs? newdir (:dir bike)) bike
@@ -53,7 +52,8 @@
   nil)
 
 (defn update-direction [bike newdir]
-  (when newdir (dosync (alter bike turn newdir))))
+  (when newdir
+    (dosync (alter bike turn newdir))))
 
 (defn update-positions [bike]
   (dosync (alter bike move))
