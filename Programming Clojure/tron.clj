@@ -28,7 +28,7 @@
 (defn create-bike []
   {:body (list [1 1])
    :dir [1 0]
-   :color (Color. 15 160 70)})
+   :color (Color. 255 255 0)})
 
 (defn move [{:keys [body dir] :as bike}]
   (assoc bike :body (cons (add-points (first body) dir) body)))
@@ -98,7 +98,8 @@
 	timer (Timer. turn-millis panel)]
     (doto panel
       (.setFocusable true)
-      (.addKeyListener panel))
+      (.addKeyListener panel)
+      (.setBackground (Color. 0 0 0)))
     (doto frame
       (.add panel)
       (.pack)
