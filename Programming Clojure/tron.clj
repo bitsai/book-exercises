@@ -1,7 +1,7 @@
 (ns tron
   (:import (java.awt Color Dimension)
-	   (javax.swing JPanel JFrame Timer JOptionPane)
-	   (java.awt.event ActionListener KeyListener))
+	   (java.awt.event ActionListener KeyListener)
+	   (javax.swing JPanel JFrame Timer JOptionPane))
   (:use clojure.contrib.import-static))
 
 (import-static java.awt.event.KeyEvent VK_LEFT VK_RIGHT VK_UP VK_DOWN)
@@ -22,8 +22,8 @@
 
 (defn add-points [& pts] (vec (apply map + pts)))
 
-(defn point-to-screen-rect [pt]
-  (map #(* point-size %) [(pt 0) (pt 1) 1 1]))
+(defn point-to-screen-rect [[x y]]
+  (map #(* point-size %) [x y 1 1]))
 
 (defn create-bike []
   {:body (list [1 1])
