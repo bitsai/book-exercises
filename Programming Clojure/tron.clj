@@ -102,6 +102,7 @@
     (doto frame
       (.add panel)
       (.pack)
+      (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
       (.setVisible true))
     (.start timer)
     [bike timer]))
