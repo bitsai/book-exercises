@@ -10,7 +10,6 @@
 (def height 50)
 (def point-size 10)
 (def turn-millis 75)
-(def win-length 5)
 (def dirs {VK_LEFT  [-1  0]
 	   VK_RIGHT [ 1  0]
 	   VK_UP    [ 0 -1]
@@ -36,12 +35,13 @@
 	new-body (cons new-point body)]
     (assoc bike :body new-body)))
 
-(defn win? [bike] false)
+(defn win? [bike]
+  false)
 
 (defn head-overlaps-body? [{[head & body] :body}]
   (some #(= head %) body))
 
-(defn hit-wall? [{[[x y] & body] :body}]
+(defn hit-wall? [{[[x y] & _] :body}]
   (or (neg? x)
       (neg? y)
       (> x width)
