@@ -5,8 +5,8 @@
   (:use clojure.contrib.import-static))
 
 (import-static java.awt.event.KeyEvent
-	       VK_UP VK_LEFT VK_DOWN VK_RIGHT
-	       VK_W  VK_A    VK_S    VK_D)
+	       VK_W  VK_A    VK_S    VK_D
+	       VK_UP VK_LEFT VK_DOWN VK_RIGHT)
 
 (def width 75)
 (def height 50)
@@ -36,10 +36,21 @@
    :dir start-dir
    :color color})
 
+(defn create-p1 []
+  (create-bike [37 50] [0 -1] (Color. 255 255 0)))
+
+(defn create-p2 []
+  (create-bike [37 0] [0 1] (Color. 0 0 255)))  
+
 (defn move [{:keys [trail dir] :as bike}]
-  (let [new-pt (add-points dir (first trail))
-	new-trail (cons new-pt trail)]
-    (assoc bike :trail new-trail)))
+  (let [new-pt (add-points dir (first trail))]
+    (assoc bike :trail (cons new-pt trail))))
+
+(defn win [p1 p2]
+  (cond
+   (and (nil? p1) (nil? p2)) "Tie!"
+   (nil? p1) "P2 wins!"
+   (nil? p2) "P1 wins!"))
 
 (defn hit-wall? [{[[x y] & _] :trail}]
   (or (neg? x)
@@ -50,10 +61,12 @@
 (defn hit-trails? [{[pt & _] :trail} trails]
   (some #(= pt %) trails))
 
-(defn win? [bike other-bike]
-  (or (hit-wall? other-bike)
-      (hit-trails? other-bike (concat (:trail bike)
-				      (rest (:trail other-bike))))))
+(defn lose? [bike other-bike]
+  (or
+   (nil? bike)
+   (hit-wall? bike)
+   (hit-trails? bike (concat (rest (:trail bike))
+			     (:trail other-bike)))))
 
 (defn opposite-dirs? [dir1 dir2]
   (= dir1 (opposite-dir dir2)))
@@ -63,18 +76,23 @@
       (assoc bike :dir new-dir)))
 
 ;; mutable state ahead
-(defn reset-game [p1-bike p2-bike]
-  (dosync (ref-set p1-bike (create-bike [37 50] [0 -1] (Color. 255 255 0)))
-	  (ref-set p2-bike (create-bike [37 0] [0 1] (Color. 0 0 255))))
+(defn reset-game [p1 p2]
+  (dosync (ref-set p1 (create-p1))
+	  (ref-set p2 (create-p2)))
   nil)
 
 (defn update-direction [bike new-dir]
   (when new-dir
     (dosync (alter bike turn new-dir))))
 
-(defn update-positions [p1-bike p2-bike]
-  (dosync (alter p1-bike move)
-	  (alter p2-bike move))
+(defn update-positions [p1 p2]
+  (dosync
+   (let [p1-lose (lose? @p1 @p2)
+	 p2-lose (lose? @p2 @p1)]
+     (if p1-lose (ref-set p1 nil)
+	 (alter p1 move))
+     (if p2-lose (ref-set p2 nil)
+	 (alter p2 move))))
   nil)
 
 ;; GUI
@@ -87,27 +105,25 @@
   (doseq [point trail]
     (fill-point g point color)))
 
-(defn game-panel [frame p1-bike p2-bike]
+(defn game-panel [frame p1 p2]
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
 		    (proxy-super paintComponent g)
-		    (paint g @p1-bike)
-		    (paint g @p2-bike))
+		    (paint g @p1)
+		    (paint g @p2))
     (actionPerformed [e]
-		     (update-positions p1-bike p2-bike)
-		     (when (win? @p1-bike @p2-bike)
-		       (reset-game p1-bike p2-bike)
-		       (JOptionPane/showMessageDialog frame "P1 wins!"))
-		     (when (win? @p2-bike @p1-bike)
-		       (reset-game p1-bike p2-bike)
-		       (JOptionPane/showMessageDialog frame "P2 wins!"))
+		     (update-positions p1 p2)
+		     (let [winner (win @p1 @p2)]
+		       (when winner
+			 (reset-game p1 p2)
+			 (JOptionPane/showMessageDialog frame winner)))
 		     (.repaint this))
     (keyPressed [e]
 		(let [p1-dir (p1-dirs (.getKeyCode e))
 		      p2-dir (p2-dirs (.getKeyCode e))]
 		  (cond
-		   p1-dir (update-direction p1-bike p1-dir)
-		   p2-dir (update-direction p2-bike p2-dir))))
+		   (and @p1 p1-dir) (update-direction p1 p1-dir)
+		   (and @p2 p2-dir) (update-direction p2 p2-dir))))
     (getPreferredSize []
 		      (Dimension. (* (inc width) point-size)
 				  (* (inc height) point-size)))
@@ -115,21 +131,21 @@
     (keyTyped [e])))
 
 (defn game []
-  (let [p1-bike (ref (create-bike [37 50] [0 -1] (Color. 255 255 0)))
-	p2-bike (ref (create-bike [37 0] [0 1] (Color. 0 0 255)))
+  (let [p1 (ref (create-p1))
+	p2 (ref (create-p2))
 	frame (JFrame. "Light Cycle")
-	panel (game-panel frame p1-bike p2-bike)
+	panel (game-panel frame p1 p2)
 	timer (Timer. turn-millis panel)]
     (doto panel
-      (.setFocusable true)
       (.addKeyListener panel)
-      (.setBackground (Color. 0 0 0)))
+      (.setBackground (Color. 0 0 0))
+      (.setFocusable true))
     (doto frame
       (.add panel)
       (.pack)
       (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
       (.setVisible true))
     (.start timer)
-    [p1-bike p2-bike timer]))
+    [p1 p2 timer]))
 
 (game)
