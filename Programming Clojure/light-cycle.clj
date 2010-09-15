@@ -20,6 +20,10 @@
 	      VK_LEFT  [-1  0]
 	      VK_DOWN  [ 0  1]
 	      VK_RIGHT [ 1  0]})
+(def yellow (Color. 255 255 0))
+(def blue (Color. 0 0 255))
+(def orange (Color. 255 165 0))
+(def black (Color. 0 0 0))
 
 (defn add-points [& pts]
   (vec (apply map + pts)))
@@ -27,16 +31,16 @@
 (defn point-to-screen-rect [[x y]]
   (map #(* point-size %) [x y 1 1]))
 
-(defn create-cycle [start-pt start-dir color]
-  {:trail [start-pt]
-   :dir start-dir
+(defn create-cycle [pt dir color]
+  {:trail [pt]
+   :dir dir
    :color color})
 
 (defn create-p1 []
-  (create-cycle [37 50] [0 -1] (Color. 255 255 0)))
+  (create-cycle [37 50] [0 -1] yellow))
 
 (defn create-p2 []
-  (create-cycle [37 0] [0 1] (Color. 0 0 255)))  
+  (create-cycle [37 0] [0 1] blue))
 
 (defn move [{:keys [trail dir] :as cycle}]
   (let [new-pt (add-points dir (first trail))]
@@ -55,19 +59,18 @@
    (> x width)
    (> y height)))
 
-(defn hit-trails? [{[pt & _] :trail} trails]
-  (some #(= pt %) trails))
+(defn hit-trails? [{[pt & trail] :trail} other-cycle]
+  (let [trails (concat trail (:trail other-cycle))]
+    (some #(= pt %) trails)))
 
 (defn lose? [cycle other-cycle]
   (or
    (nil? cycle)
    (hit-wall? cycle)
-   (hit-trails? cycle (concat (rest (:trail cycle))
-			      (:trail other-cycle)))))
+   (hit-trails? cycle other-cycle)))
 
-(defn turn [{:keys [trail] :as cycle} new-dir]
-  (let [new-pt (add-points new-dir (first trail))
-	prev-pt (fnext trail)]
+(defn turn [{[cur-pt prev-pt & _] :trail :as cycle} new-dir]
+  (let [new-pt (add-points new-dir cur-pt)]
     (if (= new-pt prev-pt) cycle
 	(assoc cycle :dir new-dir))))
 
@@ -101,12 +104,19 @@
   (doseq [point trail]
     (fill-point g point color)))
 
+(defn paint-collisions [g p1 p2]
+  (let [p1-pt (first (:trail p1))
+	p2-pt (first (:trail p2))]
+    (if (hit-trails? p1 p2) (fill-point g p1-pt orange))
+    (if (hit-trails? p2 p1) (fill-point g p2-pt orange))))
+
 (defn game-panel [frame p1 p2]
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
 		    (proxy-super paintComponent g)
 		    (paint-cycle g @p1)
-		    (paint-cycle g @p2))
+		    (paint-cycle g @p2)
+		    (paint-collisions g @p1 @p2))
     (actionPerformed [e]
 		     (update-positions p1 p2)
 		     (let [winner (get-winner @p1 @p2)]
@@ -134,7 +144,7 @@
 	timer (Timer. turn-millis panel)]
     (doto panel
       (.addKeyListener panel)
-      (.setBackground (Color. 0 0 0))
+      (.setBackground black)
       (.setFocusable true))
     (doto frame
       (.add panel)
