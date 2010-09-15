@@ -20,10 +20,6 @@
 	      VK_LEFT  [-1  0]
 	      VK_DOWN  [ 0  1]
 	      VK_RIGHT [ 1  0]})
-(def opposite-dir {[-1  0] [ 1  0]
-		   [ 1  0] [-1  0]
-		   [ 0 -1] [ 0  1]
-		   [ 0  1] [ 0 -1]})
 
 (defn add-points [& pts]
   (vec (apply map + pts)))
@@ -31,49 +27,49 @@
 (defn point-to-screen-rect [[x y]]
   (map #(* point-size %) [x y 1 1]))
 
-(defn create-bike [start-pt start-dir color]
+(defn create-cycle [start-pt start-dir color]
   {:trail [start-pt]
    :dir start-dir
    :color color})
 
 (defn create-p1 []
-  (create-bike [37 50] [0 -1] (Color. 255 255 0)))
+  (create-cycle [37 50] [0 -1] (Color. 255 255 0)))
 
 (defn create-p2 []
-  (create-bike [37 0] [0 1] (Color. 0 0 255)))  
+  (create-cycle [37 0] [0 1] (Color. 0 0 255)))  
 
-(defn move [{:keys [trail dir] :as bike}]
+(defn move [{:keys [trail dir] :as cycle}]
   (let [new-pt (add-points dir (first trail))]
-    (assoc bike :trail (cons new-pt trail))))
+    (assoc cycle :trail (cons new-pt trail))))
 
-(defn win [p1 p2]
+(defn get-winner [p1 p2]
   (cond
    (and (nil? p1) (nil? p2)) "Tie!"
    (nil? p1) "P2 wins!"
    (nil? p2) "P1 wins!"))
 
 (defn hit-wall? [{[[x y] & _] :trail}]
-  (or (neg? x)
-      (neg? y)
-      (> x width)
-      (> y height)))
+  (or
+   (neg? x)
+   (neg? y)
+   (> x width)
+   (> y height)))
 
 (defn hit-trails? [{[pt & _] :trail} trails]
   (some #(= pt %) trails))
 
-(defn lose? [bike other-bike]
+(defn lose? [cycle other-cycle]
   (or
-   (nil? bike)
-   (hit-wall? bike)
-   (hit-trails? bike (concat (rest (:trail bike))
-			     (:trail other-bike)))))
+   (nil? cycle)
+   (hit-wall? cycle)
+   (hit-trails? cycle (concat (rest (:trail cycle))
+			      (:trail other-cycle)))))
 
-(defn opposite-dirs? [dir1 dir2]
-  (= dir1 (opposite-dir dir2)))
-
-(defn turn [bike new-dir]
-  (if (opposite-dirs? new-dir (:dir bike)) bike
-      (assoc bike :dir new-dir)))
+(defn turn [{:keys [trail] :as cycle} new-dir]
+  (let [new-pt (add-points new-dir (first trail))
+	prev-pt (fnext trail)]
+    (if (= new-pt prev-pt) cycle
+	(assoc cycle :dir new-dir))))
 
 ;; mutable state ahead
 (defn reset-game [p1 p2]
@@ -81,9 +77,9 @@
 	  (ref-set p2 (create-p2)))
   nil)
 
-(defn update-direction [bike new-dir]
+(defn update-direction [cycle new-dir]
   (when new-dir
-    (dosync (alter bike turn new-dir))))
+    (dosync (alter cycle turn new-dir))))
 
 (defn update-positions [p1 p2]
   (dosync
@@ -101,7 +97,7 @@
     (.setColor g color)
     (.fillRect g x y width height)))
 
-(defn paint [g {:keys [trail color]}]
+(defn paint-cycle [g {:keys [trail color]}]
   (doseq [point trail]
     (fill-point g point color)))
 
@@ -109,11 +105,11 @@
   (proxy [JPanel ActionListener KeyListener] []
     (paintComponent [g]
 		    (proxy-super paintComponent g)
-		    (paint g @p1)
-		    (paint g @p2))
+		    (paint-cycle g @p1)
+		    (paint-cycle g @p2))
     (actionPerformed [e]
 		     (update-positions p1 p2)
-		     (let [winner (win @p1 @p2)]
+		     (let [winner (get-winner @p1 @p2)]
 		       (when winner
 			 (reset-game p1 p2)
 			 (JOptionPane/showMessageDialog frame winner)))
