@@ -1,4 +1,4 @@
-(ns lancet.step-2-complete
+(ns step-2-complete
   (:use clojure.contrib.except)
   (:import (java.beans Introspector)))
 

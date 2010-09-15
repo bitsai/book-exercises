@@ -1,4 +1,4 @@
-(ns lancet.step-1-complete
+(ns step-1-complete
   (:use clojure.contrib.except))
 
 (def
