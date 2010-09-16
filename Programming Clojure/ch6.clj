@@ -76,3 +76,5 @@ foo
     (binding [slow-double (memoize slow-double)]
       (calls-slow-double)))))
 (demo-memoize)
+
+;; I took the example code for Snake and turned it into the Light Cycle project
