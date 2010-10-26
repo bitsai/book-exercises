@@ -2,11 +2,11 @@
   ;; (:use [clojure.contrib.duck-streams :only (spit)])
   (:import [java.io BufferedReader InputStreamReader]))
 
-(require 'clojure.test)
+(require 'clojure.contrib.test-is)
 (defmacro re-test [test-sym]
   `(do
      (require :reload-all '~test-sym)
-     (clojure.test/run-tests '~test-sym)))
+     (clojure.contrib.tests-is/run-tests '~test-sym)))
 
 (defn classloader-seq 
   ([] (classloader-seq (clojure.lang.RT/baseLoader)))
