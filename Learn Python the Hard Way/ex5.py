@@ -17,4 +17,4 @@ print "His teeth are usually %r depending on brushing frequency." % teeth
 
 # this line is tricky, try to get it exactly right
 print "If I add %r, %r, and %r I get %r." % (
-    age, height, weight, age + height + weight)
+    age, height_in, weight_lb, age + height_in + weight_lb)
