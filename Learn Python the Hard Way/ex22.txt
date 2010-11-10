@@ -1,0 +1,48 @@
+# (pound, hash): create comment
+print: print output
+"" (double quotes): create strings, allows unescaped ' within
+_ (underscore): use as space in var and fn names
+= (equals): assignment
+\t (tab): tab character in strings
+\n (newline): newline character in strings
+\\ (escaped slash): slash character in strings
+''' (triple single quotes): create multiline strings, allows unescaped " within
+%s (percent s): string format character
+% (percent): declare inputs for format characters, numeric module operator
+%% (percent percent): % character in strings
+%r (percent r): print-anything format character
+'' (single quotes): create strings, allows unescaped " within
+() (parens): list of items (function arguments, format character inputs, etc.)
+\' (escaped single quote): ' character in strings
+\" (escaped double quote): " character in strings
+, (comma): separate list items
+raw_input: print optional prompt, take in input
+from: declare module to import from
+sys: sys module
+import: declare functions to import from module
+argv: array of command line arguments
+""": (triple double quotes): create multiline strings, allows unescaped ' within
+open: open file; 'w' argument allows writing to file
+read: read content from file as string
+readline: read one line from file
+readlines: read all lines from file as array of strings
+write: write content to file
+close: close file
+truncate: clear file of content
+[] (square brackets): get content of array at index
+def: create function
+: (colon): delimit end of function signature
++ (plus): add numbers, concatenate strings
+seek: move to specified position in file
++= (plus-equal): make variable equal to some number + current content of variable
+return: declare return value of function
+- (minus): subtract numbers
+* (multiply): multiply numbers
+/ (divide): divide numbers
+%d (percent d): integer format character
+< (less than): less-than operator
+> (greater than): greater-than operator
+>= (greater or equal to): greater-or-equal-to operator
+<= (less or equal to): less-or-equal-to operator
+True: True boolean literal
+False: False boolean literal
