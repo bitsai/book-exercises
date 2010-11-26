@@ -41,7 +41,7 @@ class Map(object):
         
         if action == "eat it":
             print "You explode like a pinata full of frogs."
-            print "The Princess cackles and eats the frots. Yum!"
+            print "The Princess cackles and eats the frogs. Yum!"
             return 'death'
 
         elif action == "do not eat it":
