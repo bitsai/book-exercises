@@ -1,7 +1,6 @@
 from nose.tools import *
-from ex50.page import *
 
-def test_page():
+def test_room():
     pass
 
 def test_choices():
