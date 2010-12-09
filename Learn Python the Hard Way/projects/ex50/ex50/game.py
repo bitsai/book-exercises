@@ -1,8 +1,8 @@
 from start import *
 
-def goto(room):
+def goto(room, score):
     print "\n--------\n"
-    nextRoom = room.enter()
-    goto(nextRoom)
+    next_room, new_score = room.enter(score)
+    goto(next_room, new_score)
 
-goto(Start())
+goto(Start(), 0)

@@ -1,4 +1,4 @@
 class End(object):
-    def enter(self):
-        print "THE END"
+    def enter(self, score):
+        print "Your final score is", score
         exit()
