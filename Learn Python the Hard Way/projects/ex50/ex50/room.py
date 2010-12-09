@@ -9,18 +9,19 @@ class Room(object):
     def enter(self):
         print self.description
         self.print_choices()
-        choice = raw_input("> ")
-        return self.choose(choice)
+        selection = raw_input("\n> ")
+        return self.choose(selection)
 
     def print_choices(self):
         idx = 0
-        for description, nextRoom in self.choices:
-            print "(", idx, ")", description
+        for choice, consequence, nextRoom in self.choices:
+            print "(", idx, ")", choice
             idx += 1
 
-    def choose(self, choice):
-        if not choice.isdigit(): return self
-        idx = int(choice)
+    def choose(self, selection):
+        if not selection.isdigit(): return self
+        idx = int(selection)
         if idx < 0 or idx >= len(self.choices): return self
-        description, nextRoom = self.choices[idx]
+        choice, consequence, nextRoom = self.choices[idx]
+        print "\n", consequence
         return nextRoom
