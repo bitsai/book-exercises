@@ -19,7 +19,7 @@ def goto(room, score):
     print "\n--------\n"
     next_room, new_score = room.enter(score)
     if next_room is None:
-        end(score)
+        end(new_score)
     else:
         goto(next_room, new_score)
 
