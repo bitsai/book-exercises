@@ -1,5 +1,4 @@
 from room import *
-from end import *
 
 class Q10(Room):
     def __init__(self):
@@ -9,5 +8,5 @@ class Q10(Room):
                    ("Banthas", "Wrong!", 0),
                    ("A Sail Barge", "Correct!", 1),
                    ("A Desert Yacht", "Wrong!", 0)]
-        next_room = End()
+        next_room = None
         super(Q10, self).__init__(name, choices, next_room)

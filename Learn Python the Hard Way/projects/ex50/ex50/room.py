@@ -3,7 +3,7 @@ class Room(object):
         self.name = name
         self.choices = choices
         self.next_room = next_room
-        filepath = "../descriptions/" + name + ".txt"
+        filepath = "descriptions/" + name + ".txt"
         with open(filepath) as f:
             self.description = f.read()
 
