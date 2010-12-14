@@ -6,7 +6,7 @@ def test_room():
     assert_equal(s.name, "Start")
     assert_equal(s.next_room.name, "Q1")
     assert_equal(len(s.choices), 1)
-    assert_equal(s.choices[0], ("Continue", "'Ho ho ho, let the game begin!' booms Jabba...", 0))
+    assert_equal(s.choices[0], ("Continue", "You begin the test...", 0))
 
 def test_choices():
     s = Start()
