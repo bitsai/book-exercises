@@ -1,6 +1,6 @@
 (use '[clojure.contrib.math :only (expt)])
 
-(= 'fooo 'FoOo) ;; Unlike Common Lisp, Clojure is case-sensitive
+(= 'fooo 'FoOo) ;; false in Clojure
 
 (+ 1 1.0)
 
