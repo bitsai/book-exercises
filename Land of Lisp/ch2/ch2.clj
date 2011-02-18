@@ -1,5 +1,4 @@
-(def small (atom 1))
-(def big (atom 100))
+(use 'guess-my-number)
 
 (def foo 5)
 (def foo 6)
@@ -7,26 +6,18 @@
 (defonce goo 5)
 (defonce goo 6)
 
-(defn guess-my-number []
-  (quot (+ @small @big) 2))
-
 (quot 11 2)
+
+(guess-my-number)
 
 (defn return-five []
   (+ 2 3))
 
-(defn smaller []
-  (reset! big (dec (guess-my-number)))
-  (guess-my-number))
+(bigger)
 
-(defn bigger []
-  (reset! small (inc (guess-my-number)))
-  (guess-my-number))
+(smaller)
 
-(defn start-over []
-  (reset! small 1)
-  (reset! big 100)
-  (guess-my-number))
+(smaller)
 
 (let [a 5
       b 6]
