@@ -122,19 +122,22 @@
   'nil-is-in-the-list
   'nil-is-not-in-the-list)
 
-(some odd? '(2 4 5 6)) ;; returns true in Clojure
+(defn find-if [pred coll]
+  (some #(if (pred %) %) coll))
 
-(if (some odd? '(2 4 5 6))
+(find-if odd? '(2 4 5 6))
+
+(if (find-if odd? '(2 4 5 6))
   'there-is-an-odd-number
   'there-is-no-odd-number)
 
-(some nil? '(2 4 nil 6)) ;; returns true in Clojure
+(find-if nil? '(2 4 nil 6))
 
-(def fruit (atom 'apple))
+(def fruit 'apple)
 
 (cond
- (= @fruit 'apple) 'its-an-apple
- (= @fruit 'orange) 'its-an-orange)
+ (= fruit 'apple) 'its-an-apple
+ (= fruit 'orange) 'its-an-orange)
 
 (= 'apple 'apple)
 
