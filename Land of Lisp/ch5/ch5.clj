@@ -32,7 +32,10 @@
 
 (look)
 
-(some #(if (= (second %) 'y) %) '((5 x) (3 y) (7 z)))
+(defn find* [x coll key-fn]
+  (some #(if (= x (key-fn %)) %) coll))
+
+(find* 'y '((5 x) (3 y) (7 z)) fnext)
 
 (walk 'west)
 
