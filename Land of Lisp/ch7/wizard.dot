@@ -1,0 +1,9 @@
+digraph{
+living_room[label="[living-room (you are in th..."];
+garden[label="[garden (you are in a beaut..."];
+attic[label="[attic (you are in the atti..."];
+living_room->garden[label="(west door)"];
+living_room->attic[label="(upstairs ladder)"];
+garden->living_room[label="(east door)"];
+attic->living_room[label="(downstairs ladder)"];
+}
