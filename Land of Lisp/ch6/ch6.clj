@@ -63,6 +63,8 @@
 
 (game-read)
 
+(game-print '(THIS IS A SENTENCE. WHAT ABOUT THIS? PROBABLY.))
+
 (game-print '(not only does this sentence have a "comma," it also mentions the "iPad."))
 
 (game-repl)
