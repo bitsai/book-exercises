@@ -13,8 +13,8 @@
     (eval sexp)
     '(i do not know that command.)))
 
-(defn tweak-text [[item & rest :as lst] caps? lit?]
-  (when lst
+(defn tweak-text [[item & rest] caps? lit?]
+  (when item
     (cond
      (= item \space) (cons item (tweak-text rest caps? lit?))
      (some #{item} "!?.") (cons item (tweak-text rest true lit?))
@@ -24,7 +24,7 @@
      :else (cons (str/lower-case item) (tweak-text rest false false)))))
 
 (defn game-print [lst]
-  (let [s (print-str lst)
+  (let [s (pr-str lst)
 	trimmed (subs s 1 (dec (count s)))
 	tweaked (tweak-text trimmed true false)]
     (println (apply str tweaked))))
