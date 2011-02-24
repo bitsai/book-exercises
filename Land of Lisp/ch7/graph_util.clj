@@ -16,14 +16,14 @@
     ""))
 
 (defn nodes->dot [nodes]
-  (doseq [[name _ :as node] (seq nodes)]
+  (doseq [[name _ :as node] nodes]
     (print (dot-name name))
     (print "[label=\"")
     (print (dot-label node))
     (println "\"];")))
 
 (defn edges->dot [edges]
-  (doseq [[src paths] (seq edges)
+  (doseq [[src paths] edges
 	  [dst & content] paths]
     (print (dot-name src))
     (print "->")
