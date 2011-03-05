@@ -1,14 +1,16 @@
 (ns wumpus
-  (:use graph-util))
+  (:use graph-util)
+  (:use [clojure.contrib.seq :only (find-first)]))
 
-(def *city-edges* (atom nil))
-(def *city-nodes* (atom nil))
-(def *player-pos* (atom nil))
-(def *visited-nodes* (atom nil))
 (def *node-num* 30)
 (def *edge-num* 45)
 (def *worm-num* 3)
 (def *cop-odds* 15)
+
+(def *city-edges* (atom nil))
+(def *city-nodes* (atom nil))
+(def *player* (atom nil))
+(def *visited* (atom nil))
 
 (defn random-node []
   (inc (rand-int *node-num*)))
@@ -26,12 +28,12 @@
 
 (defn get-connected [node edge-list]
   (loop [[n & ns] [node]
-	 visited #{}]
+	 connected #{}]
     (if-not n
-      visited
+      connected
       (let [neighbors (distinct (map second (direct-edges n edge-list)))]
-	(recur (concat ns (remove visited neighbors))
-	       (conj visited n))))))
+	(recur (concat ns (remove connected neighbors))
+	       (conj connected n))))))
 
 (defn find-islands [nodes edge-list]
   (loop [[n & _ :as cur-nodes] nodes
@@ -101,9 +103,62 @@
 (defn draw-city []
   (ugraph->png "city.dot" @*city-nodes* @*city-edges*))
 
+(defn known-city-nodes []
+  (let [visible (distinct
+		 (concat @*visited*
+			 (mapcat #(neighbors % @*city-edges*)
+				 @*visited*)))]
+    (into {} (for [n visible]
+	       [n (if (@*visited* n)
+		    (let [description (@*city-nodes* n)]
+		      (if (= n @*player*)
+			(concat description '(*))
+			description))
+		    '(?))]))))
+
+(defn known-city-edges []
+  (into {} (for [n1 @*visited*]
+	     [n1 (for [[n2 & _ :as x] (@*city-edges* n1)]
+		   (if (@*visited* n2)
+		     x
+		     [n2]))])))
+
+(defn draw-known-city []
+  (ugraph->png "known-city.dot" (known-city-nodes) (known-city-edges)))
+
+(defn handle-new-place [edge pos charging?]
+  (let [description (@*city-nodes* pos)
+	has-worm? (and (some #{'glow-worm} description)
+		       (not (@*visited* pos)))]
+    (swap! *visited* conj pos)
+    (reset! *player* pos)
+    (draw-known-city)
+    (cond
+     (some #{'cops} edge) (println "You ran into the cops. Game over.")
+     (some #{'wumpus} description) (if charging?
+				     (println "You killed the Wumpus!")
+				     (println "The Wumpus killed you!"))
+     charging? (println "You wasted your last bullet. Game over.")
+     has-worm? (let [new-pos (random-node)]
+		 (println "Ran into Glow Worm Gang! Now at" new-pos)
+		 (handle-new-place nil new-pos false)))))
+
+(defn handle-direction [pos charging?]
+  (let [edge (find-first #(= pos (first %)) (@*city-edges* @*player*))]
+    (if edge
+      (handle-new-place edge pos charging?)
+      (println "Can't get there from here!"))))
+
+(defn walk [pos]
+  (handle-direction pos false))
+
+(defn charge [pos]
+  (handle-direction pos true))
+
 (defn new-game []
   (reset! *city-edges* (make-city-edges))
   (reset! *city-nodes* (make-city-nodes @*city-edges*))
-  (reset! *player-pos* (find-empty-node))
-  (reset! *visited-nodes* [@*player-pos*])
-  (draw-city))
+  (reset! *player* (find-empty-node))
+  (reset! *visited* #{@*player*})
+  (draw-city)
+  (draw-known-city))

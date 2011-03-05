@@ -7,3 +7,14 @@
 (let [a 5
       b (+ a 2)]
   b)
+
+;; 'mapcan' in Clojure is 'mapcat'
+(defn ingredients [order]
+  (mapcat (fn [burger]
+	    (case burger
+		  'single '(patty)
+		  'double '(patty patty)
+		  'double-cheese '(patty patty cheese)))
+	  order))
+
+(ingredients '(single double-cheese double))
