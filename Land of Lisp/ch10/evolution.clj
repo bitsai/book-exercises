@@ -66,12 +66,12 @@
 
 (defn update-world []
   (reset! *animals* (remove #(<= (:energy %) 0) @*animals*))
-  (reset! *animals* (flatten (map #(-> %
-				       turn
-				       move
-				       eat
-				       reproduce)
-				  @*animals*)))
+  (reset! *animals* (reduce concat (map #(-> %
+					     turn
+					     move
+					     eat
+					     reproduce)
+					@*animals*)))
   (add-plants))
 
 (defn draw-world []
@@ -79,7 +79,7 @@
     (print "|")
     (doseq [x (range *width*)]
       (print (cond
-	      (some #(and (= x (:x %)) (= y (:y %))) @*animals*) "X"
+	      (some #(= [x y] [(:x %) (:y %)]) @*animals*) "X"
 	      (@*plants* [x y]) "O"
 	      :else " ")))
     (println "|")))
