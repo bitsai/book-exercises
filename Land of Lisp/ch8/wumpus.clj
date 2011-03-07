@@ -2,8 +2,8 @@
   (:use graph-util)
   (:use [clojure.contrib.seq :only (find-first)]))
 
-(def *node-num* 30)
 (def *edge-num* 45)
+(def *node-num* 30)
 (def *worm-num* 3)
 (def *cop-odds* 15)
 
