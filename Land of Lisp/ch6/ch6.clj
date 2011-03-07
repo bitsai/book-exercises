@@ -1,5 +1,4 @@
-(use 'wizard)
-(use 'repl)
+(use 'game-repl)
 
 (prn "foo")
 

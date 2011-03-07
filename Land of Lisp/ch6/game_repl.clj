@@ -1,4 +1,5 @@
-(ns repl
+(ns game-repl
+  (:use wizard)
   (:require [clojure.string :as str]))
 
 (def allowed-commands '(look walk pickup inventory))
@@ -34,3 +35,5 @@
     (when-not (= (first cmd) 'quit)
       (game-print (game-eval cmd))
       (recur))))
+
+(game-repl)
