@@ -6,7 +6,7 @@
 (def *plant-energy* 80)
 (def *reproduction-energy* 200)
 (def *plants* (atom #{}))
-(def *animals* (atom nil))
+(def *animals* (atom []))
 
 (defn random-plant [left top width height]
   (let [pos [(+ left (rand-int width)) (+ top (rand-int height))]]
@@ -66,12 +66,12 @@
 
 (defn update-world []
   (reset! *animals* (remove #(<= (:energy %) 0) @*animals*))
-  (reset! *animals* (reduce concat (map #(-> %
-					     turn
-					     move
-					     eat
-					     reproduce)
-					@*animals*)))
+  (reset! *animals* (reduce into [] (map #(-> %
+					      turn
+					      move
+					      eat
+					      reproduce)
+					 @*animals*)))
   (add-plants))
 
 (defn draw-world []
@@ -87,15 +87,13 @@
 (defn evolution []
   (draw-world)
   (let [x (read)]
-    (if (= x 'quit)
-     nil
-     (do
-       (if (number? x) 
-	 (doseq [i (range x)]
-	   (update-world)
-	   (if (zero? (mod i 1000))
-	     (println ".")))
-	 (update-world))
-       (recur)))))
+    (when (not= x 'quit)
+      (if (number? x)
+	(doseq [i (range x)]
+	  (update-world)
+	  (if (zero? (mod i 1000))
+	    (println ".")))
+	(update-world))
+      (recur))))
 
 (evolution)
