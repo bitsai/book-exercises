@@ -157,7 +157,7 @@
 	   "Strength:" @*strength*))
 
 (defn player-attack []
-  (println "Attack: [s]tab [d]ouble swing [r]oundhouse:")
+  (println "Attack: [s]tab [d]ouble swing [r]oundhouse")
   (case (read)
 	's (let [x (+ 2 (randval (quot @*strength* 2)))]
 	     (println "Stab has strength of" x)
