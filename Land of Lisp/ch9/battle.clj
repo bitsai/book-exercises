@@ -14,22 +14,20 @@
 (defn foe-dead? [f]
   (<= (:health f) 0))
 
-(defn foes-dead? []
-  (every? foe-dead? @*foes*))
-
-;; Base foe multimethods
+;; Foes
 (defmulti foe-hit (fn [[idx f] x] (class f)))
 (defmethod foe-hit ::foe [[idx f] x]
-  (let [new-f (update-in f [:health] - x)
-	name (subs (.getName (class f)) 7)]
+  (let [name (subs (.getName (class f)) 7)
+	new-f (update-in f [:health] - x)]
     (if (foe-dead? new-f)
-      (println "You killed the" name)
-      (println "You hit the" name "for" x "health!"))
+      (println (str "You killed the " name "!"))
+      (println "You hit the" name "for" x "health points!"))
     (swap! *foes* assoc idx new-f)))
 
 (defmulti foe-show class)
 (defmethod foe-show ::foe [f]
-  (str "A fierce " (subs (.getName (class f)) 7)))
+  (let [name (subs (.getName (class f)) 7)]
+    (str "A fierce " name)))
 
 (defmulti foe-attack (fn [idx f] (class f)))
 
@@ -41,7 +39,7 @@
 (swap! *foe-builders* conj make-orc)
 
 (defmethod foe-show orc [f]
-  (str "A wicked orc with a level " (:club-level f) " club."))
+  (str "A wicked orc with a level " (:club-level f) " club"))
 
 (defmethod foe-attack orc [_ f]
   (let [x (randval (:club-level f))]
@@ -56,20 +54,21 @@
 (swap! *foe-builders* conj make-hydra)
 
 (defmethod foe-show hydra [f]
-  (str "A malicious hydra with " (:health f) " heads."))
+  (str "A malicious hydra with " (:health f) " heads"))
 
 (defmethod foe-hit hydra [[idx f] x]
   (let [new-f (update-in f [:health] - x)]
     (if (foe-dead? new-f)
       (println "The corpse of the decapitated hydra falls to the floor!")
-      (println "You lop off" x "of the hydra's head!"))
+      (println "You knock off" x "of the hydra's heads!"))
     (swap! *foes* assoc idx new-f)))
 
 (defmethod foe-attack hydra [idx f]
-  (let [x (randval (quot (:health f) 2))]
-    (println "A hydra attacks you with" x "of its heads for" x "health!")
+  (let [x (randval (quot (:health f) 2))
+	new-f (update-in f [:health] inc)]
+    (println "A hydra attacks you with" x "of its heads!")
     (println "It also grows back 1 more head!")
-    (swap! *foes* update-in [idx :health] inc)
+    (swap! *foes* assoc idx new-f)
     (swap! *health* - x)))
 
 ;; Slime
@@ -82,9 +81,10 @@
 (defmethod foe-show slime [f]
   (str "A slime with a sliminess of " (:sliminess f)))
 
-(defmethod foe-attack slime [idx f]
+(defmethod foe-attack slime [_ f]
   (let [x (randval (:sliminess f))]
-    (println "A slime wraps your legs and decreases your agility by" x)
+    (println (str "A slime wraps your legs and decreases your agility by "
+		  x "!"))
     (swap! *agility* - x)
     (when (zero? (rand-int 2))
       (println "It also squirts your face, taking away 1 health point!")
@@ -97,39 +97,44 @@
 (derive brigand ::foe)
 (swap! *foe-builders* conj make-brigand)
 
-(defmethod foe-attack brigand [idx f]
+(defmethod foe-attack brigand [_ f]
   (let [x (max @*health* @*agility* @*strength*)]
     (cond
      (= x @*health*) (do
 		       (println "A brigand hits you with his slingshot.")
-		       (println "Takes off 2 health points!")
+		       (println "Taking off 2 health points!")
 		       (swap! *health* - 2))
      (= x @*agility*) (do
 			(println "A brigand whips your leg.")
-			(println "Takes off 2 agility points!")
+			(println "Taking off 2 agility points!")
 			(swap! *agility* - 2))
      :else (do
 	     (println "A brigand whips your arm.")
-	     (println "Takes off 2 strength points!")
+	     (println "Taking off 2 strength points!")
 	     (swap! *strength* - 2)))))
 
+;; Foe management functions
 (defn init-foes []
   (let [new-foes (repeatedly *foes-num* #((rand-nth @*foe-builders*)))]
     (reset! *foes* (vec new-foes))))
 
+(defn foes-dead? []
+  (every? foe-dead? @*foes*))
+
 (defn show-foes []
   (println "Your foes:")
-  (doseq [[x f] (indexed @*foes*)]
-    (println (inc x)
+  (doseq [[idx f] (indexed @*foes*)]
+    (println (inc idx) "."
 	     (if (foe-dead? f)
 	       "**dead**"
 	       (str "(Health = " (:health f) ") " (foe-show f))))))
 
+;; Helper functions for player attacks
 (defn random-foe []
-  (let [[x f] (rand-nth (indexed @*foes*))]
+  (let [[idx f] (rand-nth (indexed @*foes*))]
     (if (foe-dead? f)
       (recur)
-      [x f])))
+      [idx f])))
 
 (defn pick-foe []
   (println "Foe #:")
@@ -143,6 +148,7 @@
 	      (recur))
 	  [(dec x) f])))))
 
+;; Player management functions
 (defn init-player []
   (reset! *health* 30)
   (reset! *agility* 30)
@@ -152,35 +158,35 @@
   (<= @*health* 0))
 
 (defn show-player []
-  (println "Health:" @*health*
-	   "Agility:" @*agility*
-	   "Strength:" @*strength*))
+  (println "\nYou are a mystic monk with" @*health* "health,"
+	   @*agility* "agility, and" @*strength* "strength."))
 
 (defn player-attack []
-  (println "Attack: [s]tab [d]ouble swing [r]oundhouse")
+  (println "Attack style: [k]i strike [d]ual strike [f]lurry of blows")
   (case (read)
-	's (let [x (+ 2 (randval (quot @*strength* 2)))]
-	     (println "Stab has strength of" x)
+	'k (let [x (+ 2 (randval (quot @*strength* 2)))]
+	     (println "Your ki strike has a strength of" x)
 	     (foe-hit (pick-foe) x))
 	'd (let [x (randval (quot @*strength* 6))]
-	     (println "Double swing has strength of" x)
+	     (println "Your double strike has a strength of" x)
 	     (foe-hit (pick-foe) x)
-	     (if-not (foes-dead?)
+	     (when-not (foes-dead?)
 	       (foe-hit (pick-foe) x)))
-	'r (dotimes [_ (inc (randval (quot @*strength* 3)))]
-	     (if-not (foes-dead?)
+	'f (dotimes [_ (inc (randval (quot @*strength* 3)))]
+	     (when-not (foes-dead?)
 	       (foe-hit (random-foe) 1)))
 	(recur)))
 
+;; Main game functions
 (defn game-loop []
   (when-not (or (player-dead?) (foes-dead?))
     (show-player)
-    (dotimes [_ (inc (quot @*agility* 15))]
+    (dotimes [_ (inc (quot (max 0 @*agility*) 15))]
       (when-not (foes-dead?)
 	(show-foes)
 	(player-attack)))
     (doseq [[idx f] (indexed @*foes*)]
-      (if-not (foe-dead? f)
+      (when-not (foe-dead? f)
 	(foe-attack idx f)))
     (recur)))
 
@@ -189,7 +195,7 @@
   (init-player)
   (game-loop)
   (cond
-   (player-dead?) (println "You have been killed. Game over.")
-   (foes-dead?) (println "Congratulations! You vanquished all foes.")))
+   (player-dead?) (println "\nYou have been killed. Game over.")
+   (foes-dead?) (println "\nCongratulations! You vanquished all foes.")))
 
 (battle)
