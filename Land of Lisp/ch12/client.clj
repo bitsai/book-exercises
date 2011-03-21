@@ -1,0 +1,11 @@
+(def *socket* (java.net.Socket. "127.0.0.1" 4321))
+(def *in-stream* (.getInputStream *socket*))
+(def *out-stream* (.getOutputStream *socket*))
+(.write *out-stream* (.getBytes "Yo Server!"))
+(let [len (.available *in-stream*)
+      bytes (byte-array len)]
+  (.read *in-stream* bytes)
+  (String. bytes 0 len))
+(.close *out-stream*)
+(.close *in-stream*)
+(.close *socket*)
