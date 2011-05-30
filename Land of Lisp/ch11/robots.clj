@@ -1,63 +1,64 @@
 (ns robots
-  (:use [clojure.contrib.math :only (abs)])
-  (:use [clojure.contrib.seq :only (indexed)]))
+  (:use [clojure.contrib.math :only (abs)]))
 
-(def *directions* {'q -65, 'w -64, 'e -63, 'a -1,
-		   'd   1, 'z  63, 'x  64, 'c 65})
+(defn rand-pos []
+  (rand-int 1024))
+
+(def *inputs* {'q -65, 'w -64, 'e -63, 'a -1,
+               'd   1, 'z  63, 'x  64, 'c 65})
 (def *player* (atom 544))
-(def *robots* (atom (vec (repeatedly 10 #(rand-int 1024)))))
+(def *robots* (atom (repeatedly 10 rand-pos)))
+
+(defn end-game [msg]
+  (println msg)
+  (System/exit 0))
 
 (defn move-player []
   (println "qwe/asd/zxc to move, (t)eleport, (l)eave:")
   (let [c (read)
-	d (*directions* c)]
-    (cond
-     d (swap! *player* + d)
-     (= c 't) (reset! *player* (rand-int 1024))
-     (= c 'l) (do (println "bye")
-		  (System/exit 0)))))
+	offset (*inputs* c)]
+    (cond offset (swap! *player* + offset)
+          (= c 't) (reset! *player* (rand-pos))
+          (= c 'l) (end-game "bye"))))
 
-(defn manhattan-distance [p1 p2]
-  (+ (abs (- (mod p1 64) (mod p2 64)))
-     (abs (- (bit-shift-right p1 6) (bit-shift-right p2 6)))))
+(defn manhattan-dist [x y]
+  (+ (abs (- (mod x 64) (mod y 64)))
+     (abs (- (bit-shift-right x 6) (bit-shift-right y 6)))))
 
-(defn closest-move [rpos]
-  (let [moves (map #(+ rpos %) (vals *directions*))]
-    (apply min-key #(manhattan-distance @*player* %) moves)))
+(defn next-move [pos]
+  (let [offsets (vals *inputs*)
+        moves (map #(+ % pos) offsets)]
+    (apply min-key #(manhattan-dist % @*player*) moves)))
+
+(defn dead-robot? [pos]
+  (> (count (filter #{pos} @*robots*)) 1))
+
+(defn move-robot [pos]
+  (if (dead-robot? pos) pos (next-move pos)))
 
 (defn move-robots []
-  (doseq [[idx rpos] (indexed @*robots*)]
-    (if (< (count (filter #{rpos} @*robots*)) 2)
-      (swap! *robots* assoc idx (closest-move rpos)))))
+  (swap! *robots* #(doall (map move-robot %))))
 
-(defn robots-dead? []
-  (every? #(> % 1) (vals (frequencies @*robots*))))
-
-(defn player-dead? []
-  (some #{@*player*} @*robots*))
+(defn draw-pos [pos]
+  (print (cond (dead-robot? pos) "#"
+               (some #{pos} @*robots*) "A"
+               (= pos @*player*) "@"
+               :else " ")))
 
 (defn draw-map []
   (println (apply str (repeat 66 "-")))
   (doseq [row (partition 64 (range 1024))]
     (print "|")
-    (doseq [p row]
-      (print (cond
-	      (> (count (filter #{p} @*robots*)) 1) "#"
-	      (some #{p} @*robots*) "A"
-	      (= p @*player*) "@"
-	      :else " ")))
+    (dorun (map draw-pos row))
     (println "|"))
   (println (apply str (repeat 66 "-"))))
 
-(defn robots []
+(defn play-turn []
   (draw-map)
   (move-player)
   (move-robots)
-  (cond
-   (robots-dead?) (do (println "player wins")
-		      (System/exit 0))
-   (player-dead?) (do (println "player loses")
-		      (System/exit 0))
-   :else (recur)))
+  (cond (every? dead-robot? @*robots*) (end-game "player wins")
+        (some #{@*player*} @*robots*) (end-game "player loses")
+        :else (recur)))
 
-(robots)
+(play-turn)
