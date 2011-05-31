@@ -40,21 +40,23 @@
   (swap! *robots* #(doall (map move-robot %))))
 
 (defn draw-pos [pos]
-  (print (cond (dead-robot? pos) "#"
-               (some #{pos} @*robots*) "A"
-               (= pos @*player*) "@"
-               :else " ")))
+  (cond (dead-robot? pos) "#"
+        (some #{pos} @*robots*) "A"
+        (= pos @*player*) "@"
+        :else " "))
+
+(defn draw-row [row]
+  (str "|" (apply str (map draw-pos row)) "|\n"))
 
 (defn draw-map []
-  (println (apply str (repeat 66 "-")))
-  (doseq [row (partition 64 (range 1024))]
-    (print "|")
-    (dorun (map draw-pos row))
-    (println "|"))
-  (println (apply str (repeat 66 "-"))))
+  (str
+   (apply str (repeat 66 "-")) "\n"
+   (let [rows (partition 64 (range 1024))]
+     (apply str (map draw-row rows)))
+   (apply str (repeat 66 "-")) "\n"))
 
 (defn play-turn []
-  (draw-map)
+  (println (draw-map))
   (move-player)
   (move-robots)
   (cond (every? dead-robot? @*robots*) (end-game "player wins")
