@@ -181,10 +181,11 @@
       (when-not (monsters-dead?)
 	(show-monsters)
 	(player-attack)))
-    (newline)
-    (doseq [[idx m] (indexed @*monsters*)]
-      (when-not (monster-dead? m)
-	(monster-attack idx m)))
+    (when-not (monsters-dead?)
+      (newline)
+      (doseq [[idx m] (indexed @*monsters*)]
+        (when-not (monster-dead? m)
+          (monster-attack idx m))))
     (newline)
     (recur)))
 
