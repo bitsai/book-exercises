@@ -1,40 +1,43 @@
 (ns robots
   (:use [clojure.contrib.math :only (abs)]))
 
-(defn rand-pos []
-  (rand-int 1024))
+(def *inputs* {'q [-1 -1] 'w [-1  0] 'e [-1  1]
+               'a [ 0 -1] 's [ 0  0] 'd [ 0  1]
+               'z [ 1 -1] 'x [ 1  0] 'c [ 1  1]})
 
-(def *inputs* {'q -65, 'w -64, 'e -63, 'a -1,
-               'd   1, 'z  63, 'x  64, 'c 65})
-(def *player* (atom 544))
+(def *rows* 32)
+(def *cols* 64)
+
+(defn rand-pos []
+  [(rand-int *rows*) (rand-int *cols*)])
+
+(def *player* (atom [(/ *rows* 2) (/ *cols* 2)]))
 (def *robots* (atom (repeatedly 10 rand-pos)))
 
-(defn end-game [msg]
-  (println msg)
-  (System/exit 0))
+(defn combine [pos offset]
+  (let [[x y] (map + pos offset)]
+    (if (or (neg? x) (neg? y) (>= x *rows*) (>= y *cols*))
+      pos
+      [x y])))
 
-(defn move-player []
-  (println "qwe/asd/zxc to move, (t)eleport, (l)eave:")
-  (let [c (read)
-	offset (*inputs* c)]
-    (cond offset (swap! *player* + offset)
-          (= c 't) (reset! *player* (rand-pos))
-          (= c 'l) (end-game "bye"))))
+(defn move-player [input]
+  (let [offset (*inputs* input)]
+    (cond offset (swap! *player* combine offset)
+          (= input 't) (reset! *player* (rand-pos)))))
 
-(defn manhattan-dist [x y]
-  (+ (abs (- (mod x 64) (mod y 64)))
-     (abs (- (bit-shift-right x 6) (bit-shift-right y 6)))))
+(defn manhattan-dist [pos1 pos2]
+  (apply + (map #(abs (- %1 %2)) pos1 pos2)))
 
-(defn next-move [pos]
+(defn best-move [pos]
   (let [offsets (vals *inputs*)
-        moves (map #(+ % pos) offsets)]
+        moves (map #(combine pos %) offsets)]
     (apply min-key #(manhattan-dist % @*player*) moves)))
 
 (defn dead-robot? [pos]
   (> (count (filter #{pos} @*robots*)) 1))
 
 (defn move-robot [pos]
-  (if (dead-robot? pos) pos (next-move pos)))
+  (if (dead-robot? pos) pos (best-move pos)))
 
 (defn move-robots []
   (swap! *robots* #(doall (map move-robot %))))
@@ -46,21 +49,29 @@
         :else " "))
 
 (defn draw-row [row]
-  (str "|" (apply str (map draw-pos row)) "|\n"))
+  (let [draw-col (fn [col] (draw-pos [row col]))]
+    (str "|" (apply str (map draw-col (range *cols*))) "|\n")))
 
 (defn draw-map []
-  (str
-   (apply str (repeat 66 "-")) "\n"
-   (let [rows (partition 64 (range 1024))]
-     (apply str (map draw-row rows)))
-   (apply str (repeat 66 "-")) "\n"))
+  (str (apply str (repeat (+ *cols* 2) "-")) "\n"
+       (apply str (map draw-row (range *rows*)))
+       (apply str (repeat (+ *cols* 2) "-")) "\n"
+       "qwe/asd/zxc to move, (t)eleport:"))
 
-(defn play-turn []
-  (println (draw-map))
-  (move-player)
+(defn end-game [msg]
+  (println msg)
+  (System/exit 0))
+
+(defn process-input [input]
+  (move-player input)
   (move-robots)
   (cond (every? dead-robot? @*robots*) (end-game "player wins")
         (some #{@*player*} @*robots*) (end-game "player loses")
-        :else (recur)))
+        :else (println (draw-map))))
 
-(play-turn)
+(defn input-loop []
+  (process-input (read))
+  (recur))
+
+(println (draw-map))
+(input-loop)
