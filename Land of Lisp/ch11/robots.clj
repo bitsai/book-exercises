@@ -1,24 +1,23 @@
 (ns robots
   (:use [clojure.contrib.math :only (abs)]))
 
+(def *rows* 16)
+(def *cols* 64)
 (def *inputs* {'q [-1 -1] 'w [-1  0] 'e [-1  1]
                'a [ 0 -1] 's [ 0  0] 'd [ 0  1]
                'z [ 1 -1] 'x [ 1  0] 'c [ 1  1]})
 
-(def *rows* 32)
-(def *cols* 64)
+(def *player* (atom nil))
+(def *robots* (atom nil))
 
 (defn rand-pos []
   [(rand-int *rows*) (rand-int *cols*)])
 
-(def *player* (atom [(/ *rows* 2) (/ *cols* 2)]))
-(def *robots* (atom (repeatedly 10 rand-pos)))
-
 (defn combine [pos offset]
   (let [[x y] (map + pos offset)]
-    (if (or (neg? x) (neg? y) (>= x *rows*) (>= y *cols*))
-      pos
-      [x y])))
+    (if (and (< -1 x *rows*) (< -1 y *cols*))
+      [x y]
+      pos)))
 
 (defn move-player [input]
   (let [offset (*inputs* input)]
@@ -53,10 +52,15 @@
     (str "|" (apply str (map draw-col (range *cols*))) "|\n")))
 
 (defn draw-map []
-  (str (apply str (repeat (+ *cols* 2) "-")) "\n"
-       (apply str (map draw-row (range *rows*)))
-       (apply str (repeat (+ *cols* 2) "-")) "\n"
-       "qwe/asd/zxc to move, (t)eleport:"))
+  (println (str (apply str (repeat (+ *cols* 2) "-")) "\n"
+                (apply str (map draw-row (range *rows*)))
+                (apply str (repeat (+ *cols* 2) "-")) "\n"
+                "qwe/asd/zxc to move, (t)eleport")))
+
+(defn new-game []
+  (reset! *player* [(/ *rows* 2) (/ *cols* 2)])
+  (reset! *robots* (repeatedly 10 rand-pos))
+  (draw-map))
 
 (defn end-game [msg]
   (println msg)
@@ -65,13 +69,12 @@
 (defn process-input [input]
   (move-player input)
   (move-robots)
-  (cond (every? dead-robot? @*robots*) (end-game "player wins")
-        (some #{@*player*} @*robots*) (end-game "player loses")
-        :else (println (draw-map))))
+  (cond (every? dead-robot? @*robots*) (end-game "Player wins!")
+        (some #{@*player*} @*robots*) (end-game "Player loses!")
+        :else (draw-map)))
 
-(defn input-loop []
+(new-game)
+
+(loop []
   (process-input (read))
   (recur))
-
-(println (draw-map))
-(input-loop)
