@@ -11,19 +11,22 @@
 (def *player* (atom nil))
 (def *robots* (atom nil))
 
-(defn rand-pos []
-  [(rand-int *rows*) (rand-int *cols*)])
-
 (defn combine [pos offset]
   (let [[x y] (map + pos offset)]
     (if (and (< -1 x *rows*) (< -1 y *cols*))
       [x y]
       pos)))
 
+(defn rand-pos []
+  [(rand-int *rows*) (rand-int *cols*)])
+
 (defn move-player [input]
   (let [offset (*inputs* input)]
     (cond offset (swap! *player* combine offset)
           (= input 't) (reset! *player* (rand-pos)))))
+
+(defn scrap? [pos]
+  (> (count (filter #{pos} @*robots*)) 1))
 
 (defn manhattan-dist [pos1 pos2]
   (apply + (map #(abs (- %1 %2)) pos1 pos2)))
@@ -33,48 +36,50 @@
         moves (map #(combine pos %) offsets)]
     (apply min-key #(manhattan-dist % @*player*) moves)))
 
-(defn scrap? [pos]
-  (> (count (filter #{pos} @*robots*)) 1))
-
 (defn move-robot [pos]
   (if (scrap? pos) pos (best-move pos)))
 
 (defn move-robots []
-  (swap! *robots* #(doall (map move-robot %))))
+  (reset! *robots* (doall (map move-robot @*robots*))))
 
-(defn draw-pos [pos]
-  (cond (and (= pos @*player*) (some #{pos} @*robots*)) "X"
-        (= pos @*player*) "O"
-        (scrap? pos) "S"
-        (some #{pos} @*robots*) "R"
-        :else " "))
-
-(defn draw-row [row]
-  (let [draw-col (fn [col] (draw-pos [row col]))]
-    (str "|" (apply str (map draw-col (range *cols*))) "|\n")))
+(defn index [[x y]]
+  (+ (* (inc x) (+ *cols* 3)) y 1))
 
 (defn draw-map []
-  (println (str (apply str (repeat (+ *cols* 2) "-")) "\n"
-                (apply str (map draw-row (range *rows*)))
-                (apply str (repeat (+ *cols* 2) "-")))))
-
-(defn new-game []
-  (reset! *player* [(/ *rows* 2) (/ *cols* 2)])
-  (reset! *robots* (repeatedly 10 rand-pos))
-  (draw-map)
-  (println "qwe/asd/zxc to move, t to teleport"))
+  (let [row (str "|" (apply str (repeat *cols* " ")) "|\n")
+        output1 (vec (str (apply str (repeat (+ *cols* 2) "-")) "\n"
+                          (apply str (repeat *rows* row))
+                          (apply str (repeat (+ *cols* 2) "-"))))
+        output2 (assoc output1 (index @*player*) \O)
+        output3 (reduce (fn [output r]
+                          (cond
+                           (= r @*player*) (assoc output (index r) \X)
+                           (scrap? r) (assoc output (index r) \S)
+                           :else (assoc output (index r) \R)))
+                        output2
+                        @*robots*)]
+    (println (apply str output3))))
 
 (defn end-game [msg]
   (println msg)
   (System/exit 0))
 
+(defn check-end-game []
+  (cond (every? scrap? @*robots*) (end-game "Player wins!")
+        (some #{@*player*} @*robots*) (end-game "Player loses!")
+        :else (println "qwe/asd/zxc to move, t to teleport")))
+
+(defn new-game []
+  (reset! *player* [(/ *rows* 2) (/ *cols* 2)])
+  (reset! *robots* (repeatedly 10 rand-pos))
+  (draw-map)
+  (check-end-game))
+
 (defn process-input [input]
   (move-player input)
   (move-robots)
   (draw-map)
-  (cond (every? scrap? @*robots*) (end-game "Player wins!")
-        (some #{@*player*} @*robots*) (end-game "Player loses!")
-        :else (println "qwe/asd/zxc to move, t to teleport")))
+  (check-end-game))
 
 (new-game)
 
