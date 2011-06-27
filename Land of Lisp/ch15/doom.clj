@@ -1,35 +1,40 @@
 (ns doom)
 
-(def *num-players* 2)
-(def *max-dice* 3)
-(def *board-size* 2)
-(def *board-hexnum* (* *board-size* *board-size*))
+(def num-players 2)
+(def max-dice 3)
+(def board-size 3)
+(def board-hexnum (* board-size board-size))
+
+(defn third [coll]
+  (first (rest (rest coll))))
 
 (defn gen-board []
-  (let [f (fn [] [(rand-int *num-players*) (inc (rand-int *max-dice*))])]
-    (vec (repeatedly *board-hexnum* f))))
+  (let [f (fn [] [(rand-int num-players) (inc (rand-int max-dice))])]
+    (vec (repeatedly board-hexnum f))))
 
 (defn player-letter [n]
   (char (+ 97 n)))
 
 (defn draw-board [board]
-  (doseq [row (range *board-size*)]
-    (print (apply str (repeat (- *board-size* row) \space)))
-    (doseq [col (range *board-size*)]
-      (let [[player dice] (board (+ col (* *board-size* row)))]
+  (doseq [row (range board-size)]
+    (print (apply str (repeat (- board-size row) \space)))
+    (doseq [col (range board-size)]
+      (let [[player dice] (board (+ col (* board-size row)))]
         (print (str (player-letter player) "-" dice " "))))
     (newline)))
 
 (defn neighbors [pos]
-  (let [up (- pos *board-size*)
-        down (+ pos *board-size*)]
+  (let [up (- pos board-size)
+        down (+ pos board-size)]
     (for [p (concat [up down]
-                    (when-not (zero? (mod pos *board-size*))
+                    (when-not (zero? (mod pos board-size))
                       [(dec up) (dec pos)])
-                    (when-not (zero? (mod (inc pos) *board-size*))
+                    (when-not (zero? (mod (inc pos) board-size))
                       [(inc pos) (inc down)]))
-          :when (< -1 p *board-hexnum*)]
+          :when (< -1 p board-hexnum)]
       p)))
+
+(def neighbors (memoize neighbors))
 
 (defn board-attack [board player src dst dice]
   (assoc board
@@ -37,16 +42,18 @@
     dst [player (dec dice)]))
 
 (defn add-new-dice [board player spare-dice]
-  (letfn [(f [[[cur-player cur-dice] :as lst] n]
-            (cond (empty? lst) nil
-                  (zero? n) lst
+  (letfn [(f [[[cur-player cur-dice] :as lst] n acc]
+            (cond (zero? n) (into acc lst)
+                  (empty? lst) acc
                   :else (if (and (= cur-player player)
-                                 (< cur-dice *max-dice*))
-                          (cons [cur-player (inc cur-dice)]
-                                (f (rest lst) (dec n)))
-                          (cons [cur-player cur-dice]
-                                (f (rest lst) n)))))]
-    (vec (f board spare-dice))))
+                                 (< cur-dice max-dice))
+                          (recur (rest lst)
+                                 (dec n)
+                                 (conj acc [cur-player (inc cur-dice)]))
+                          (recur (rest lst)
+                                 n
+                                 (conj acc [cur-player cur-dice])))))]
+    (f board spare-dice [])))
 
 (declare game-tree add-passing-move attacking-moves)
 
@@ -59,12 +66,14 @@
                      first-move?
                      (attacking-moves board player spare-dice))])
 
+(def game-tree (memoize game-tree))
+
 (defn add-passing-move [board player spare-dice first-move? moves]
   (if first-move?
     moves
     (cons [nil
            (game-tree (add-new-dice board player (dec spare-dice))
-                      (mod (inc player) *num-players*)
+                      (mod (inc player) num-players)
                       0
                       true)]
           moves)))
@@ -87,7 +96,7 @@
                                          (+ spare-dice (dice dst))
                                          nil)]]))
                         (neighbors src))))
-            (range *board-hexnum*))))
+            (range board-hexnum))))
 
 (defn print-info [tree]
   (println "current player =" (player-letter (first tree)))
@@ -95,7 +104,7 @@
 
 (defn handle-human [tree]
   (println "choose your move:")
-  (let [moves (second (rest tree))]
+  (let [moves (third tree)]
     (doseq [[n [action]] (map list (range) moves)]
       (print (str (inc n) ". "))
       (if action
@@ -117,8 +126,44 @@
 
 (defn play-vs-human [tree]
   (print-info tree)
-  (if (seq (second (rest tree)))
+  (if (seq (third tree))
     (recur (handle-human tree))
     (announce-winners (second tree))))
 
-(play-vs-human (game-tree [[1 2][1 2][0 2][1 1]] 0 0 true))
+;;(play-vs-human (game-tree [[1 2][1 2][0 2][1 1]] 0 0 true))
+
+(declare rate-position get-ratings)
+
+(defn rate-position [tree player]
+  (let [moves (third tree)]
+    (if (seq moves)
+      (if (= (first tree) player)
+        (apply max (get-ratings tree player))
+        (apply min (get-ratings tree player)))
+      (let [w (winners (second tree))]
+        (if (some #{player} w)
+          (/ 1 (count w))
+          0)))))
+
+(def rate-position (memoize rate-position))
+
+(defn get-ratings [tree player]
+  (map #(rate-position (second %) player) (third tree)))
+
+(defn handle-computer [tree]
+  (let [player (first tree)
+        moves (reverse (third tree))
+        best (apply max-key #(rate-position (second %) player) moves)]
+    (second best)))
+
+(defn play-vs-computer [tree]
+  (print-info tree)
+  (cond (empty? (third tree)) (announce-winners (second tree))
+        (zero? (first tree)) (recur (handle-human tree))
+        :else (recur (handle-computer tree))))
+
+;;(play-vs-computer (game-tree [[0 3][1 3][0 2][1 2]] 0 0 true))
+
+(play-vs-computer (game-tree [[1 1][0 2][0 3]
+                              [0 1][1 1][1 2]
+                              [1 2][0 2][1 3]] 0 0 true))
