@@ -1,5 +1,4 @@
-(ns robots
-  (:use [clojure.contrib.math :only (abs)]))
+(ns robots)
 
 (def *rows* 16)
 (def *cols* 64)
@@ -29,7 +28,7 @@
   (> (count (filter #{pos} @*robots*)) 1))
 
 (defn manhattan-dist [pos1 pos2]
-  (apply + (map #(abs (- %1 %2)) pos1 pos2)))
+  (apply + (map #(java.lang.Math/abs (- %1 %2)) pos1 pos2)))
 
 (defn best-move [pos]
   (let [offsets (vals *inputs*)

@@ -32,8 +32,7 @@
 (swap! *drink-order* assoc 'john 'medium-latte)
 (@*drink-order* 'lisa)
 
-(use '[clojure.contrib.math :only (round)])
-(round 2.4)
+(java.lang.Math/round 2.4)
 (defn foo []
   [3 7])
 (foo)
@@ -97,10 +96,9 @@
 (count "blub")
 (count [nil nil nil nil nil])
 
-(use '[clojure.contrib.seq :only (find-first positions)])
-(find-first number? '(a b 5 d))
+(first (filter number? '(a b 5 d)))
 (count (filter #{\s} "mississippi"))
-(first (positions #{\4} "2kewl4skewl"))
+(count (take-while #(not (= \4 %)) "2kewl4skewl"))
 (some number? '(a b 5 d))
 (every? number? '(a b 5 d))
 

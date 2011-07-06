@@ -1,5 +1,4 @@
-(ns battle
-  (:use [clojure.contrib.seq :only (indexed)]))
+(ns battle)
 
 (def *player-health* (atom nil))
 (def *player-agility* (atom nil))
@@ -8,6 +7,9 @@
 (def *monsters* (atom nil))
 (def *monster-builders* (atom nil))
 (def *monster-num* 12)
+
+(defn indexed [coll]
+  (map list (range) coll))
 
 (defn randval [n]
   (inc (rand-int (max 1 n))))
@@ -159,19 +161,19 @@
 (defn player-attack []
   (println "Attack style: [s]tab [d]ouble swing [r]oundhouse")
   (case (read)
-	's (let [x (+ 2 (randval (quot @*player-strength* 2)))]
-	     (println (str "Your stab has a strength of " x "."))
-	     (monster-hit (pick-monster) x))
-	'd (let [x (randval (quot @*player-strength* 6))]
-	     (println (str "Your double swing has a strength of " x "."))
-	     (monster-hit (pick-monster) x)
-	     (when-not (monsters-dead?)
-	       (monster-hit (pick-monster) x)))
-	'r (dotimes [_ (inc (randval (quot @*player-strength* 3)))]
-	     (when-not (monsters-dead?)
-	       (monster-hit (random-monster) 1)))
-	(do (println "That is not a valid attack.")
-            (recur))))
+    's (let [x (+ 2 (randval (quot @*player-strength* 2)))]
+         (println (str "Your stab has a strength of " x "."))
+         (monster-hit (pick-monster) x))
+    'd (let [x (randval (quot @*player-strength* 6))]
+         (println (str "Your double swing has a strength of " x "."))
+         (monster-hit (pick-monster) x)
+         (when-not (monsters-dead?)
+           (monster-hit (pick-monster) x)))
+    'r (dotimes [_ (inc (randval (quot @*player-strength* 3)))]
+         (when-not (monsters-dead?)
+           (monster-hit (random-monster) 1)))
+    (do (println "That is not a valid attack.")
+        (recur))))
 
 ;; Main game functions
 (defn game-loop []

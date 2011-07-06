@@ -1,15 +1,16 @@
 (throw (Exception. "foo"))
 
-(use 'clojure.contrib.condition)
-(def foo {:type "foo"})
-(raise foo)
+(def foo (Exception. "Stop FOOing around, numbskull!"))
+(throw foo)
 
 (defn bad-function []
-  (raise foo))
-(handler-case :type
+  (throw foo))
+(try
   (bad-function)
-  (handle "foo" "somebody signaled foo!")
-  (handle "bar" "somebody signaled bar!"))
+  (catch Exception e
+    (println "somebody threw an Exception!"))
+  (catch ClassNotFoundException e
+    (println "somebody threw a ClassNotFoundException!")))
 
 (try
   (/ 1 0)

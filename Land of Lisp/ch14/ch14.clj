@@ -1,5 +1,4 @@
-(use 'clojure.contrib.generic.math-functions)
-(sin 0.5)
+(java.lang.Math/sin 0.5)
 
 (defn add-widget [database widget]
   (cons widget database))

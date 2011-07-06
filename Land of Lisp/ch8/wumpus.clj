@@ -1,6 +1,5 @@
 (ns wumpus
-  (:use graph-util)
-  (:use [clojure.contrib.seq :only (find-first)]))
+  (:use graph-util))
 
 (def *edge-num* 45)
 (def *node-num* 30)
@@ -144,7 +143,8 @@
 		 (handle-new-place nil new-pos false)))))
 
 (defn handle-direction [pos charging?]
-  (let [edge (find-first #(= pos (first %)) (@*city-edges* @*player*))]
+  (let [legal-edges (@*city-edges* @*player*)
+        edge (first (filter #(= pos (first %)) legal-edges))]
     (if edge
       (handle-new-place edge pos charging?)
       (println "Can't get there from here!"))))
