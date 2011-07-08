@@ -51,11 +51,12 @@
           (look))
       '[you cannot go that way.])))
 
-(defn pickup [obj]
-  (if (some #{obj} (objects-at @*location* objects @*object-locations*))
-    (do (swap! *object-locations* assoc obj 'body)
-        ['you 'are 'now 'carrying 'the obj])
-    '[you cannot get that.]))
+(defn pickup [object]
+  (let [objs-at-loc (objects-at @*location* objects @*object-locations*)]
+    (if (some #{object} objs-at-loc)
+      (do (swap! *object-locations* assoc object 'body)
+          ['you 'are 'now 'carrying 'the object])
+      '[you cannot get that.])))
 
 (defn inventory []
   (cons 'ITEMS- (objects-at 'body objects @*object-locations*)))
