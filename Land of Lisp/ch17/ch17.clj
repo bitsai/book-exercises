@@ -74,3 +74,14 @@
                                 [[400 200]])
                                (repeatedly 3 #(rand-int 256))))))]
   (spit "random_walk.svg" output))
+
+(use 'game-repl)
+(use 'wizard)
+(look)
+(game-repl)
+
+(weld 'chain 'bucket)
+(game-repl)
+(game-repl)
+
+(game-repl)
