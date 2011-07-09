@@ -31,7 +31,7 @@
 (defmacro split [val yes no]
   `(if (seq ~val)
      (let [~'head (first ~val)
-           ~'tail (rest ~val)]
+           ~'tail (next ~val)]
        ~yes)
      ~no))
 (split [2 3]
@@ -59,7 +59,7 @@
   `(let1 ~'x ~val
          (if (seq ~'x)
            (let [~'head (first ~'x)
-                 ~'tail (rest ~'x)]
+                 ~'tail (next ~'x)]
              ~yes)
            ~no)))
 (split (do (println "Lisp rocks!")
@@ -80,7 +80,7 @@
         `(let1 ~g ~val
                (if (seq ~g)
                  (let [~'head (first ~g)
-                       ~'tail (rest ~g)]
+                       ~'tail (next ~g)]
                    ~yes)
                  ~no))))
 (macroexpand '(split [2 3]
