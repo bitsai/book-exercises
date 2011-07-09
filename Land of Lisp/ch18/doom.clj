@@ -4,9 +4,13 @@
 (def max-dice 3)
 (def board-size 4)
 (def board-hexnum (* board-size board-size))
+(def ai-level 4)
 
 (defn third [coll]
   (first (next (next coll))))
+
+(defn indexed [coll]
+  (map list (range) coll))
 
 (defn gen-board []
   (let [f (fn [] [(rand-int num-players) (inc (rand-int max-dice))])]
@@ -97,7 +101,7 @@
                                          (dice src))
                            cur-player
                            (+ spare-dice (dice dst))
-                           nil)]]))
+                           false)]]))
           (neighbors src))))
      (range board-hexnum))))
 
@@ -108,7 +112,7 @@
 (defn handle-human [tree]
   (println "choose your move:")
   (let [moves (third tree)]
-    (doseq [[n [action]] (map list (range) moves)]
+    (doseq [[n [action]] (indexed moves)]
       (print (str (inc n) ". "))
       (if action
         (println (first action) "->" (second action))
@@ -133,6 +137,22 @@
     (recur (handle-human tree))
     (announce-winners (second tree))))
 
+(defn threatened? [pos board]
+  (let [[player dice] (board pos)]
+    (some (fn [n]
+            (let [[nplayer ndice] (board n)]
+              (and (not= player nplayer)
+                   (> ndice dice))))
+          (neighbors pos))))
+
+(defn score-board [board player]
+  (reduce + (for [[pos hex] (indexed board)]
+              (if (= player (first hex))
+                (if (threatened? pos board)
+                  1
+                  2)
+                -1))))
+
 (declare rate-position get-ratings)
 
 (defn rate-position [tree player]
@@ -141,21 +161,32 @@
       (if (= (first tree) player)
         (apply max (get-ratings tree player))
         (apply min (get-ratings tree player)))
-      (let [w (winners (second tree))]
-        (if (some #{player} w)
-          (/ 1 (count w))
-          0)))))
+      (score-board (second tree) player))))
 
 (def rate-position (memoize rate-position))
 
 (defn get-ratings [tree player]
   (map #(rate-position (second %) player) (third tree)))
 
+(defn limit-tree-depth [tree depth]
+  [(first tree)
+   (second tree)
+   (when-not (zero? depth)
+     (map (fn [move]
+            [(first move)
+             (limit-tree-depth (second move) (dec depth))])
+          (third tree)))])
+
 (defn handle-computer [tree]
   (let [player (first tree)
-        moves (reverse (third tree))
-        best (apply max-key #(rate-position (second %) player) moves)]
-    (second best)))
+        trimmed-tree (limit-tree-depth tree ai-level)
+        indexed-ratings (indexed (get-ratings trimmed-tree player))
+        idx-best (first (reduce (fn [x y]
+                                  (if (>= (second x) (second y))
+                                    x
+                                    y))
+                                indexed-ratings))]
+    (second (nth (third tree) idx-best))))
 
 (defn play-vs-computer [tree]
   (print-info tree)
