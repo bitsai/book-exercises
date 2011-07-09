@@ -6,7 +6,7 @@
 (def board-hexnum (* board-size board-size))
 
 (defn third [coll]
-  (first (rest (rest coll))))
+  (first (next (next coll))))
 
 (defn gen-board []
   (let [f (fn [] [(rand-int num-players) (inc (rand-int max-dice))])]
@@ -47,10 +47,10 @@
                   (empty? lst) acc
                   :else (if (and (= cur-player player)
                                  (< cur-dice max-dice))
-                          (recur (rest lst)
+                          (recur (next lst)
                                  (dec n)
                                  (conj acc [cur-player (inc cur-dice)]))
-                          (recur (rest lst)
+                          (recur (next lst)
                                  n
                                  (conj acc [cur-player cur-dice])))))]
     (f board spare-dice [])))
@@ -130,8 +130,6 @@
     (recur (handle-human tree))
     (announce-winners (second tree))))
 
-;;(play-vs-human (game-tree [[1 2][1 2][0 2][1 1]] 0 0 true))
-
 (declare rate-position get-ratings)
 
 (defn rate-position [tree player]
@@ -161,9 +159,3 @@
   (cond (empty? (third tree)) (announce-winners (second tree))
         (zero? (first tree)) (recur (handle-human tree))
         :else (recur (handle-computer tree))))
-
-;;(play-vs-computer (game-tree [[0 3][1 3][0 2][1 2]] 0 0 true))
-
-(play-vs-computer (game-tree [[1 1][0 2][0 3]
-                              [0 1][1 1][1 2]
-                              [1 2][0 2][1 3]] 0 0 true))

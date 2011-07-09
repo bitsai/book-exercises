@@ -1,3 +1,8 @@
+(use 'doom)
+(play-vs-human (game-tree [[1 2][1 2][0 2][1 1]] 0 0 true))
+
+(play-vs-computer (game-tree [[0 3][1 3][0 2][1 2]] 0 0 true))
+
 (def foo (fn [] 5))
 (foo)
 (def foo (let [x 5]
@@ -29,3 +34,7 @@
     (f lst 0)))
 (my-length '(fie foh fum))
 (my-length big-list)
+
+(play-vs-computer (game-tree [[1 1][0 2][0 3]
+                              [0 1][1 1][1 2]
+                              [1 2][0 2][1 3]] 0 0 true))
