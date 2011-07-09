@@ -8,6 +8,9 @@
 (defn third [coll]
   (first (next (next coll))))
 
+(defn indexed [coll]
+  (map list (range) coll))
+
 (defn gen-board []
   (let [f (fn [] [(rand-int num-players) (inc (rand-int max-dice))])]
     (vec (repeatedly board-hexnum f))))
@@ -105,7 +108,7 @@
 (defn handle-human [tree]
   (println "choose your move:")
   (let [moves (third tree)]
-    (doseq [[n [action]] (map list (range) moves)]
+    (doseq [[n [action]] (indexed moves)]
       (print (str (inc n) ". "))
       (if action
         (println (first action) "->" (second action))
@@ -150,8 +153,13 @@
 
 (defn handle-computer [tree]
   (let [player (first tree)
-        positions (map second (reverse (third tree)))]
-    (apply max-key #(rate-position % player) positions)))
+        indexed-ratings (indexed (get-ratings tree player))
+        idx-best (first (reduce (fn [x y]
+                                  (if (>= (second x) (second y))
+                                    x
+                                    y))
+                                indexed-ratings))]
+    (second (nth (third tree) idx-best))))
 
 (defn play-vs-computer [tree]
   (print-info tree)
