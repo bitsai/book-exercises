@@ -94,7 +94,7 @@
                                                        (dice src))
                                          cur-player
                                          (+ spare-dice (dice dst))
-                                         nil)]]))
+                                         false)]]))
                         (neighbors src))))
             (range board-hexnum))))
 
