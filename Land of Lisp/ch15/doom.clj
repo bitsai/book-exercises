@@ -150,9 +150,8 @@
 
 (defn handle-computer [tree]
   (let [player (first tree)
-        moves (reverse (third tree))
-        best (apply max-key #(rate-position (second %) player) moves)]
-    (second best)))
+        positions (map second (reverse (third tree)))]
+    (apply max-key #(rate-position % player) positions)))
 
 (defn play-vs-computer [tree]
   (print-info tree)
