@@ -84,22 +84,24 @@
 (defn attacking-moves [board cur-player spare-dice]
   (let [player (fn [pos] (first (board pos)))
         dice (fn [pos] (second (board pos)))]
-    (mapcat (fn [src]
-              (when (= (player src) cur-player)
-                (mapcat (fn [dst]
-                          (when (and (not= (player dst) cur-player)
-                                     (> (dice src) (dice dst)))
-                            [[[src dst]
-                              (game-tree (board-attack board
-                                                       cur-player
-                                                       src
-                                                       dst
-                                                       (dice src))
+    (mapcat
+     (fn [src]
+       (when (= cur-player (player src))
+         (mapcat
+          (fn [dst]
+            (when (and (not= cur-player (player dst))
+                       (> (dice src) (dice dst)))
+              [[[src dst]
+                (game-tree (board-attack board
                                          cur-player
-                                         (+ spare-dice (dice dst))
-                                         false)]]))
-                        (neighbors src))))
-            (range board-hexnum))))
+                                         src
+                                         dst
+                                         (dice src))
+                           cur-player
+                           (+ spare-dice (dice dst))
+                           false)]]))
+          (neighbors src))))
+     (range board-hexnum))))
 
 (defn print-info [tree]
   (println "current player =" (player-letter (first tree)))
@@ -107,19 +109,24 @@
 
 (defn handle-human [tree]
   (println "choose your move:")
-  (let [moves (third tree)]
-    (doseq [[n [action]] (indexed moves)]
-      (print (str (inc n) ". "))
-      (if action
-        (println (first action) "->" (second action))
-        (println "end turn")))
+  (let [print-moves (fn print-moves [moves n]
+                      (when-not (empty? moves)
+                        (let [move (first moves)
+                              action (first move)]
+                          (print (str n ". "))
+                          (if action
+                            (println (first action) "->" (second action))
+                            (println "end turn"))
+                          (recur (next moves) (inc n)))))
+        moves (third tree)]
+    (print-moves moves 1)
     (second (nth moves (dec (read))))))
 
 (defn winners [board]
   (let [tally (map first board)
         totals (frequencies tally)
         best (apply max (vals totals))]
-    (map first (filter (fn [[player total]] (= total best)) totals))))
+    (map first (filter (fn [[player total]] (= best total)) totals))))
 
 (defn announce-winners [board]
   (let [w (winners board)]
@@ -129,7 +136,7 @@
 
 (defn play-vs-human [tree]
   (print-info tree)
-  (if (seq (third tree))
+  (if-not (empty? (third tree))
     (recur (handle-human tree))
     (announce-winners (second tree))))
 
@@ -137,8 +144,8 @@
 
 (defn rate-position [tree player]
   (let [moves (third tree)]
-    (if (seq moves)
-      (if (= (first tree) player)
+    (if-not (empty? moves)
+      (if (= player (first tree))
         (apply max (get-ratings tree player))
         (apply min (get-ratings tree player)))
       (let [w (winners (second tree))]
@@ -152,13 +159,12 @@
   (map #(rate-position (second %) player) (third tree)))
 
 (defn handle-computer [tree]
-  (let [player (first tree)
-        indexed-ratings (indexed (get-ratings tree player))
+  (let [ratings (get-ratings tree (first tree))
         idx-best (first (reduce (fn [x y]
                                   (if (>= (second x) (second y))
                                     x
                                     y))
-                                indexed-ratings))]
+                                (indexed ratings)))]
     (second (nth (third tree) idx-best))))
 
 (defn play-vs-computer [tree]
