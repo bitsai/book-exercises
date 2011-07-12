@@ -1,4 +1,4 @@
-(java.lang.Math/sin 0.5)
+(Math/sin 0.5)
 
 (defn add-widget [database widget]
   (cons widget database))

@@ -32,7 +32,7 @@
 (swap! *drink-order* assoc 'john 'medium-latte)
 (@*drink-order* 'lisa)
 
-(java.lang.Math/round 2.4)
+(Math/round 2.4)
 (defn foo []
   [3 7])
 (foo)
@@ -135,11 +135,10 @@
 (add 3 4)
 (add '(a b) '(c d))
 (defmulti add (fn [a b] [(type a) (type b)]))
-(defmethod add [java.lang.Integer java.lang.Integer] [a b]
+(defmethod add [Integer Integer] [a b]
   (+ a b))
-(defmethod add [clojure.lang.PersistentList
-		clojure.lang.PersistentList] [a b]
-		(concat a b))
+(defmethod add [clojure.lang.PersistentList clojure.lang.PersistentList] [a b]
+  (concat a b))
 (add 3 4)
 (add '(a b) '(c d))
 

@@ -1,5 +1,5 @@
 (ns graph-util
-  (:use clojure.java.io)
+  (:use [clojure.java.io :only (writer)])
   (:require [clojure.string :as str]))
 
 (def max-label-length 30)

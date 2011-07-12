@@ -2,7 +2,7 @@
 
 (+ 1 1.0)
 (defn expt [a b]
-  (java.lang.Math/pow a b))
+  (Math/pow a b))
 (expt 53 53)
 (/ 4 6)
 (/ 4.0 6)

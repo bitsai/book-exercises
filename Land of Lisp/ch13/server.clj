@@ -1,6 +1,7 @@
 (ns server
-  (:use [clojure.java.io])
-  (:require [clojure.string :as str]))
+  (:use [clojure.java.io :only (reader writer)])
+  (:require [clojure.string :as str])
+  (:import [java.net ServerSocket]))
 
 (defn http-char
   ([cs]
@@ -43,7 +44,7 @@
       (parse-params (apply str content)))))
 
 (defn serve [request-handler]
-  (with-open [server (java.net.ServerSocket. 8080)]
+  (with-open [server (ServerSocket. 8080)]
     (loop []
       (with-open [socket (.accept server)
                   rdr (reader socket)
@@ -54,12 +55,3 @@
           (binding [*out* wrtr]
             (request-handler path header params))))
       (recur))))
-
-(defn hello-request-handler [path header params]
-  (if (= path "greeting")
-    (if-let [name (get params "NAME")]
-      (println (format "<html>Nice to meet you, %s!</html>" name))
-      (println "<html><form>Name?<input name='name'/></form></html>"))
-    (println "Sorry... I don't know that page.")))
-
-(serve hello-request-handler)

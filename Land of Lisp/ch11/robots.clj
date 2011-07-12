@@ -28,7 +28,7 @@
   (> (count (filter #{pos} @*robots*)) 1))
 
 (defn manhattan-dist [pos1 pos2]
-  (apply + (map #(java.lang.Math/abs (- %1 %2)) pos1 pos2)))
+  (apply + (map #(Math/abs (- %1 %2)) pos1 pos2)))
 
 (defn best-move [pos]
   (let [offsets (vals *inputs*)

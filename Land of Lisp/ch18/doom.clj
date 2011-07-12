@@ -215,8 +215,8 @@
 (defn handle-computer [tree]
   (let [ratings (ab-get-ratings-max (limit-tree-depth tree ai-level)
                                     (first tree)
-                                    java.lang.Integer/MAX_VALUE
-                                    java.lang.Integer/MIN_VALUE)
+                                    Integer/MAX_VALUE
+                                    Integer/MIN_VALUE)
         idx-best (first (reduce (fn [x y]
                                   (if (>= (second x) (second y))
                                     x

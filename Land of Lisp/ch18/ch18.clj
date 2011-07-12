@@ -21,7 +21,7 @@
 (lazy-take 10 (make-lazy '[q w e r t y u i o p a s d f]))
 (lazy-take-all (make-lazy '[q w e r t y u i o p a s d f]))
 
-(lazy-take 10 (lazy-mapcar #(java.lang.Math/sqrt %) integers))
+(lazy-take 10 (lazy-mapcar #(Math/sqrt %) integers))
 (lazy-take 10 (lazy-mapcan (fn [x]
                              (if (even? x)
                                (make-lazy (list x))

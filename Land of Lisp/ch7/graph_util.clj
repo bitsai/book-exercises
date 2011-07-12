@@ -1,5 +1,5 @@
 (ns graph-util
-  (:use clojure.java.io)
+  (:use [clojure.java.io :only (writer)])
   (:require [clojure.string :as str]))
 
 (def max-label-length 30)
@@ -33,10 +33,10 @@
     (println "\"];")))
 
 (defn graph->dot [nodes edges]
-   (println "digraph{")
-   (nodes->dot nodes)
-   (edges->dot edges)
-   (println "}"))
+  (println "digraph{")
+  (nodes->dot nodes)
+  (edges->dot edges)
+  (println "}"))
 
 (defn dot->png [fname thunk]
   (binding [*out* (writer fname)]
@@ -65,10 +65,10 @@
       (recur next-edges))))
 
 (defn ugraph->dot [nodes edges]
-   (println "graph{")
-   (nodes->dot nodes)
-   (uedges->dot edges)
-   (println "}"))
+  (println "graph{")
+  (nodes->dot nodes)
+  (uedges->dot edges)
+  (println "}"))
 
 (defn ugraph->png [fname nodes edges]
   (dot->png fname #(ugraph->dot nodes edges)))
