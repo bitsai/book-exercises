@@ -1,25 +1,18 @@
-(use 'graph-util)
-(use 'clojure.java.io)
-
 (cons 1 (cons 2 (cons 3 nil)))
 
-(cons 1 (cons 2 3)) ;; Doesn't work in Clojure, which doesn't have dotted lists
+(cons 1 (cons 2 3)) ;; Clojure doesn't have dotted lists
+(quote (1 2 3))
 
-;; Pairs, the Clojure way
-'(2 3)
-[2 3]
+[2 3] ;; Pairs, the Clojure way
 
 (def foo (cycle '(1 2 3))) ;; infinite list, the Clojure way
 
-(def drink-order (atom {'bill 'double-espresso
-			'lisa 'small-drip-coffee
-			'john 'medium-latte}))
-
-(@drink-order 'lisa)
-
-(swap! drink-order assoc 'lisa 'large-mocha-with-whipped-cream)
-
-(@drink-order 'lisa)
+(def *drink-order* (atom {'bill 'double-espresso
+                          'lisa 'small-drip-coffee
+                          'john 'medium-latte}))
+(@*drink-order* 'lisa)
+(swap! *drink-order* assoc 'lisa 'large-mocha-with-whipped-cream)
+(@*drink-order* 'lisa)
 
 (def house '((walls (mortar (cement)
 			    (water)
@@ -34,22 +27,21 @@
 (def wizard-nodes {'living-room '(you are in the living-room. a wizard is snoring loudly on the couth.)
 		   'garden '(you are in a beautiful garden. there is a well in front of you.)
 		   'attic '(you are in the attic. there is a giant welding torch in the corner.)})
-
 (def wizard-edges {'living-room '((garden west door)
 				  (attic upstairs ladder))
 		   'garden '((living-room east door))
 		   'attic '((living-room downstairs ladder))})
 
-(defn substitute-if [replacement pred coll]
-  (loop [[x & xs] coll
-	 acc []]
-    (cond
-     (nil? x) acc
-     (pred x) (recur xs (conj acc replacement))
-     :else (recur xs (conj acc x)))))
-
+(defn substitute-if [substitute pred xs]
+  (for [x xs]
+    (if (pred x)
+      substitute
+      x)))
+(use 'graph-util)
+(dot-name 'living-room)
+(dot-name 'foo!)
+(dot-name '24)
 (apply str (substitute-if \e #(Character/isDigit %) "I'm a l33t hack3r!"))
-
 (substitute-if 0 odd? '(1 2 3 4 5 6 7 8))
 
 (nodes->dot wizard-nodes)
@@ -58,25 +50,23 @@
 
 (graph->dot wizard-nodes wizard-edges)
 
+(use '[clojure.java.io :only (writer)])
 (binding [*out* (writer "testfile.txt")]
   (println "Hello File!")
   (.close *out*))
 
 (let [cigar 5]
   cigar)
-
 :cigar
-
-;; Clojure does not allow binding to keywords
-(let [:cigar 5]
+(let [:cigar 5] ;; Clojure does not allow binding to keywords
   :cigar)
 
 (graph->png "wizard.dot" wizard-nodes wizard-edges)
 
+(dorun (map println '(a b c)))
 (defn maplist [f coll]
-  (for [i (range (count coll))]
-    (f (drop i coll))))
-
-(dorun (maplist println '(a b c)))
-
+  (when (seq coll)
+    (f coll)
+    (recur f (next coll))))
+(maplist println '(a b c))
 (ugraph->png "uwizard.dot" wizard-nodes wizard-edges)
