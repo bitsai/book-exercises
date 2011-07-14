@@ -6,29 +6,26 @@
 (def foo (delay (add 1 2)))
 (force foo)
 
-(use 'lazy)
-(def foo (lazy-cons 4 7))
-(lazy-car foo)
-(lazy-cdr foo)
-(def integers (let [f (fn f [n]
-                        (lazy-cons n (f (inc n))))]
-                (f 1)))
-(lazy-car integers)
-(lazy-car (lazy-cdr integers))
-(lazy-car (lazy-cdr (lazy-cdr integers)))
+;; Clojure doesn't allow cons-ing two atoms
+(def foo (cons 4 [7]))
+(first foo)
+(rest foo)
+(def integers (iterate inc 1))
+(first integers)
+(first (rest integers))
+(first (rest (rest integers)))
 
-(lazy-take 10 integers)
-(lazy-take 10 (make-lazy '[q w e r t y u i o p a s d f]))
-(lazy-take-all (make-lazy '[q w e r t y u i o p a s d f]))
+(take 10 integers)
+(take 10 '[q w e r t y u i o p a s d f])
+(doall '[q w e r t y u i o p a s d f])
 
-(lazy-take 10 (lazy-mapcar #(Math/sqrt %) integers))
-(lazy-take 10 (lazy-mapcan (fn [x]
-                             (if (even? x)
-                               (make-lazy (list x))
-                               (lazy-nil)))
-                           integers))
-(lazy-find-if odd? (make-lazy [2 4 6 7 8 10]))
-(lazy-nth 4 (make-lazy '[a b c d e f g]))
+(take 10 (map #(Math/sqrt %) integers))
+(take 10 (mapcat (fn [x]
+                   (when (even? x)
+                     [x]))
+                 integers))
+(first (filter odd? [2 4 6 7 8 10]))
+(nth '[a b c d e f g] 4)
 
 (use 'doom)
 (play-vs-human (game-tree [[0 1][0 3][0 1][1 2]

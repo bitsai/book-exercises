@@ -8,7 +8,7 @@
 (def ai-level 4)
 
 (defn third [coll]
-  (first (next (next coll))))
+  (first (rest (rest coll))))
 
 (defn indexed [coll]
   (map list (range) coll))
@@ -52,10 +52,10 @@
                   (empty? lst) acc
                   :else (if (and (= cur-player player)
                                  (< cur-dice max-dice))
-                          (recur (next lst)
+                          (recur (rest lst)
                                  (dec n)
                                  (conj acc [cur-player (inc cur-dice)]))
-                          (recur (next lst)
+                          (recur (rest lst)
                                  n
                                  (conj acc [cur-player cur-dice])))))]
     (f board spare-dice [])))
@@ -76,38 +76,35 @@
 (defn add-passing-move [board player spare-dice first-move? moves]
   (if first-move?
     moves
-    (lazy-cons [nil
-                (game-tree (add-new-dice board player
-                                         (dec spare-dice))
-                           (mod (inc player) num-players)
-                           0
-                           true)]
-               moves)))
+    (cons [nil
+           (game-tree (add-new-dice board player
+                                    (dec spare-dice))
+                      (mod (inc player) num-players)
+                      0
+                      true)]
+          moves)))
 
 (defn attacking-moves [board cur-player spare-dice]
   (let [player (fn [pos] (first (board pos)))
         dice (fn [pos] (second (board pos)))]
-    (lazy-mapcan
+    (mapcat1
      (fn [src]
-       (if (= cur-player (player src))
-         (lazy-mapcan
+       (when (= cur-player (player src))
+         (mapcat1
           (fn [dst]
-            (if (and (not= cur-player (player dst))
-                     (> (dice src) (dice dst)))
-              (make-lazy
-               [[[src dst]
-                 (game-tree (board-attack board
-                                          cur-player
-                                          src
-                                          dst
-                                          (dice src))
-                            cur-player
-                            (+ spare-dice (dice dst))
-                            false)]])
-              (lazy-nil)))
-          (make-lazy (neighbors src)))
-         (lazy-nil)))
-     (make-lazy (range board-hexnum)))))
+            (when (and (not= cur-player (player dst))
+                       (> (dice src) (dice dst)))
+              [[[src dst]
+                (game-tree (board-attack board
+                                         cur-player
+                                         src
+                                         dst
+                                         (dice src))
+                           cur-player
+                           (+ spare-dice (dice dst))
+                           false)]]))
+          (neighbors src))))
+     (range board-hexnum))))
 
 (defn print-info [tree]
   (println "current player =" (player-letter (first tree)))
@@ -116,17 +113,17 @@
 (defn handle-human [tree]
   (println "choose your move:")
   (let [print-moves (fn print-moves [moves n]
-                      (when-not (lazy-empty? moves)
-                        (let [move (lazy-car moves)
+                      (when (seq moves)
+                        (let [move (first moves)
                               action (first move)]
                           (print (str n ". "))
                           (if action
                             (println (first action) "->" (second action))
                             (println "end turn"))
-                          (recur (lazy-cdr moves) (inc n)))))
+                          (recur (rest moves) (inc n)))))
         moves (third tree)]
     (print-moves moves 1)
-    (second (lazy-nth (dec (read)) moves))))
+    (second (nth moves (dec (read))))))
 
 (defn winners [board]
   (let [tally (map first board)
@@ -142,7 +139,7 @@
 
 (defn play-vs-human [tree]
   (print-info tree)
-  (if-not (lazy-empty? (third tree))
+  (if (seq (third tree))
     (recur (handle-human tree))
     (announce-winners (second tree))))
 
@@ -166,31 +163,31 @@
 
 (defn ab-get-ratings-max [tree player upper-limit lower-limit]
   (let [f (fn f [moves lower-limit]
-            (when-not (lazy-empty? moves)
-              (let [x (ab-rate-position (second (lazy-car moves))
+            (when (seq moves)
+              (let [x (ab-rate-position (second (first moves))
                                         player
                                         upper-limit
                                         lower-limit)]
                 (if (>= x upper-limit)
                   [x]
-                  (cons x (f (lazy-cdr moves) (max x lower-limit)))))))]
+                  (cons x (f (rest moves) (max x lower-limit)))))))]
     (f (third tree) lower-limit)))
 
 (defn ab-get-ratings-min [tree player upper-limit lower-limit]
   (letfn [(f [moves upper-limit]
-            (when-not (lazy-empty? moves)
-              (let [x (ab-rate-position (second (lazy-car moves))
+            (when (seq moves)
+              (let [x (ab-rate-position (second (first moves))
                                         player
                                         upper-limit
                                         lower-limit)]
                 (if (<= x lower-limit)
                   [x]
-                  (cons x (f (lazy-cdr moves) (min x upper-limit)))))))]
+                  (cons x (f (rest moves) (min x upper-limit)))))))]
     (f (third tree) upper-limit)))
 
 (defn ab-rate-position [tree player upper-limit lower-limit]
   (let [moves (third tree)]
-    (if-not (lazy-empty? moves)
+    (if (seq moves)
       (if (= player (first tree))
         (apply max (ab-get-ratings-max tree
                                        player
@@ -205,12 +202,11 @@
 (defn limit-tree-depth [tree depth]
   [(first tree)
    (second tree)
-   (if (zero? depth)
-     (lazy-nil)
-     (lazy-mapcar (fn [move]
-                    [(first move)
-                     (limit-tree-depth (second move) (dec depth))])
-                  (third tree)))])
+   (when (pos? depth)
+     (map1 (fn [move]
+             [(first move)
+              (limit-tree-depth (second move) (dec depth))])
+           (third tree)))])
 
 (defn handle-computer [tree]
   (let [ratings (ab-get-ratings-max (limit-tree-depth tree ai-level)
@@ -222,10 +218,10 @@
                                     x
                                     y))
                                 (indexed ratings)))]
-    (second (lazy-nth idx-best (third tree)))))
+    (second (nth (third tree) idx-best))))
 
 (defn play-vs-computer [tree]
   (print-info tree)
-  (cond (lazy-empty? (third tree)) (announce-winners (second tree))
+  (cond (empty? (third tree)) (announce-winners (second tree))
         (zero? (first tree)) (recur (handle-human tree))
         :else (recur (handle-computer tree))))
