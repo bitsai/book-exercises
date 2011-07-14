@@ -31,7 +31,7 @@
 
 (defn svg-style [color]
   (apply format "fill:rgb(%s,%s,%s);stroke:rgb(%s,%s,%s)"
-         (into color (brightness color -100))))
+         (concat color (brightness color -100))))
 
 (defn polygon [points color]
   (tag polygon [points (str/join (for [[x y] points] (str x "," y " ")))
