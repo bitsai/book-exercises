@@ -8,7 +8,7 @@
 (defmacro split [val yes no]
   `(if (seq ~val)
      (let [~'head (first ~val)
-           ~'tail (next ~val)]
+           ~'tail (rest ~val)]
        ~yes)
      ~no))
 

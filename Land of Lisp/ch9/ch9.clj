@@ -87,7 +87,7 @@
 (defn make-person [name age waist-size favorite-color]
   (list name age waist-size favorite-color))
 (defn person-age [person]
-  (fnext person))
+  (second person))
 (def *bob* (make-person "bob" 35 32 "blue"))
 *bob*
 (person-age *bob*)

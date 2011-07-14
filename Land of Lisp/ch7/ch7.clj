@@ -67,6 +67,6 @@
 (defn maplist [f coll]
   (when (seq coll)
     (f coll)
-    (recur f (next coll))))
+    (recur f (rest coll))))
 (maplist println '(a b c))
 (ugraph->png "uwizard.dot" wizard-nodes wizard-edges)

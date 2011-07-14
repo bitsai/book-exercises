@@ -20,16 +20,16 @@
 (my-print "test")
 
 (defn my-length [lst]
-  (if lst
-    (inc (my-length (next lst)))
+  (if (seq lst)
+    (inc (my-length (rest lst)))
     0))
 (my-length '(fie foh fum))
 (def big-list (range 100000))
 (my-length big-list)
 (defn my-length [lst]
   (letfn [(f [lst acc]
-            (if lst
-              (recur (next lst) (inc acc))
+            (if (seq lst)
+              (recur (rest lst) (inc acc))
               acc))]
     (f lst 0)))
 (my-length '(fie foh fum))

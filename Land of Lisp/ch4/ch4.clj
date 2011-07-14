@@ -7,9 +7,9 @@
   'i-am-true
   'i-am-false)
 
-(defn my-length [list]
-  (if list
-    (inc (my-length (next list)))
+(defn my-length [lst]
+  (if (seq lst)
+    (inc (my-length (rest lst)))
     0))
 
 (my-length '(list with four symbols))

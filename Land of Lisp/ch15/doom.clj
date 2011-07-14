@@ -6,7 +6,7 @@
 (def board-hexnum (* board-size board-size))
 
 (defn third [coll]
-  (first (next (next coll))))
+  (first (rest (rest coll))))
 
 (defn indexed [coll]
   (map list (range) coll))
@@ -50,10 +50,10 @@
                   (empty? lst) acc
                   :else (if (and (= cur-player player)
                                  (< cur-dice max-dice))
-                          (recur (next lst)
+                          (recur (rest lst)
                                  (dec n)
                                  (conj acc [cur-player (inc cur-dice)]))
-                          (recur (next lst)
+                          (recur (rest lst)
                                  n
                                  (conj acc [cur-player cur-dice])))))]
     (f board spare-dice [])))
@@ -110,14 +110,14 @@
 (defn handle-human [tree]
   (println "choose your move:")
   (let [print-moves (fn print-moves [moves n]
-                      (when-not (empty? moves)
+                      (when (seq moves)
                         (let [move (first moves)
                               action (first move)]
                           (print (str n ". "))
                           (if action
                             (println (first action) "->" (second action))
                             (println "end turn"))
-                          (recur (next moves) (inc n)))))
+                          (recur (rest moves) (inc n)))))
         moves (third tree)]
     (print-moves moves 1)
     (second (nth moves (dec (read))))))
@@ -136,7 +136,7 @@
 
 (defn play-vs-human [tree]
   (print-info tree)
-  (if-not (empty? (third tree))
+  (if (seq (third tree))
     (recur (handle-human tree))
     (announce-winners (second tree))))
 
@@ -144,7 +144,7 @@
 
 (defn rate-position [tree player]
   (let [moves (third tree)]
-    (if-not (empty? moves)
+    (if (seq moves)
       (if (= player (first tree))
         (apply max (get-ratings tree player))
         (apply min (get-ratings tree player)))
