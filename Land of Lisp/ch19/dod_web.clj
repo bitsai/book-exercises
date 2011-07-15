@@ -11,6 +11,9 @@
 (def dot-size 0.05)
 (def die-colors [[255 63 63] [63 63 255]])
 
+(def *cur-game-tree* (atom nil))
+(def *from-tile* (atom nil))
+
 (defn draw-die-svg [x y col]
   (let [calc-pt (fn [pt]
                   [(+ x (* dice-scale (first pt)))
@@ -47,12 +50,9 @@
                (brightness col 100)
                col)))
   (dotimes [z (second hex)]
-    (draw-die-svg (+ xx
-                     (* dice-scale
-                        0.3
-                        (if (odd? (+ x y z))
-                          -0.3
-                          0.3)))
+    (draw-die-svg (+ xx (* dice-scale 0.3 (if (odd? (+ x y z))
+                                            -0.3
+                                            0.3)))
                   (- yy (* dice-scale z 0.8))
                   col)))
 
@@ -73,3 +73,76 @@
              (tag a ("xlink:href" (make-game-link pos))
                   (draw-tile-svg x y pos hex xx yy col chosen-tile)))
         (draw-tile-svg x y pos hex xx yy col chosen-tile)))))
+
+(defn web-initialize []
+  (reset! *cur-game-tree* (game-tree (gen-board) 0 0 true))
+  (reset! *from-tile* nil))
+
+(defn web-announce-winner [board]
+  (let [ws (winners board)]
+    (if (> (count ws) 1)
+      (print (str "The winners are " (map player-letter ws) "! "))
+      (print (str "The winner is " (player-letter (first ws)) "! ")))
+    (tag a (href "game.html")
+         (print "Play again."))))
+
+(defn web-handle-human [pos]
+  (let [moves (third @*cur-game-tree*)]
+    (cond (nil? pos) (print "Please choose a hex to move from.")
+          (= 'pass pos) (let [next (second (first moves))]
+                          (reset! *cur-game-tree* next)
+                          (print "Your reinforcements have been placed. ")
+                          (tag a (href (make-game-link 'continue))
+                               (print "Continue.")))
+          (nil? @*from-tile*) (do (reset! *from-tile* pos)
+                                  (print "Now choose a destination."))
+          (= @*from-tile* pos) (print "Please choose a destination.")
+          :else (let [selected? (fn [move] (= [@*from-tile* pos]
+                                              (first move)))
+                      next (second (first (filter selected? moves)))]
+                  (reset! *cur-game-tree* next)
+                  (reset! *from-tile* nil)
+                  (print "You may now ")
+                  (tag a (href (make-game-link 'pass))
+                       (print "pass"))
+                  (print " or make another move.")))))
+
+(defn web-handle-computer []
+  (swap! *cur-game-tree* handle-computer)
+  (print "The computer has moved.")
+  (let [url "game.html?computer"
+        s (str "window.setTimeout('window.location=\"" url "\"', 1000)")]
+    (tag script []
+         (print s))))
+
+(defn draw-dod-page [tree selected-tile]
+  (svg board-width
+       board-height
+       (draw-board-svg (second tree)
+                       selected-tile
+                       (if selected-tile
+                         (map (fn [move]
+                                (when (= selected-tile (ffirst move))
+                                  (first (rest (first move)))))
+                              (third tree))
+                         (map ffirst (third tree))))))
+
+(defn dod-request-handler [path header params]
+  (if (= "game.html" path)
+    (do (print "<!doctype html>")
+        (tag center []
+             (print "Welcome to DICE OF DOOM!")
+             (tag br [])
+             (when (or (nil? @*cur-game-tree*) (empty? params))
+               (web-initialize))
+             (let [chosen (get params :chosen)
+                   moves (third @*cur-game-tree*)
+                   player (first @*cur-game-tree*)]
+               (cond (empty? moves) (web-announce-winner
+                                     (second @*cur-game-tree*))
+                     (zero? player) (web-handle-human
+                                     (when chosen
+                                       (read-string chosen)))
+                     :else (web-handle-computer))))
+        (draw-dod-page @*cur-game-tree* @*from-tile*))
+    (print "Sorry... I don't know that page.")))
