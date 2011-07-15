@@ -38,7 +38,7 @@
                [(keyword (str/trim name)) (str/trim value)]))))
 
 (defn get-content-params [rdr header]
-  (when-let [length (header :content-length)]
+  (when-let [length (get header :content-length)]
     (let [content (char-array length)]
       (.read rdr content)
       (parse-params (apply str content)))))
