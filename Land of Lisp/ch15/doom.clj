@@ -129,10 +129,10 @@
     (map first (filter (fn [[player total]] (= best total)) totals))))
 
 (defn announce-winners [board]
-  (let [w (winners board)]
-    (if (> (count w) 1)
-      (println "The game is a tie between" (map player-letter w))
-      (println "The winner is" (player-letter (first w))))))
+  (let [ws (winners board)]
+    (if (> (count ws) 1)
+      (println (str "The winners are " (map player-letter ws) "!"))
+      (println (str "The winner is " (player-letter (first ws)) "!")))))
 
 (defn play-vs-human [tree]
   (print-info tree)
