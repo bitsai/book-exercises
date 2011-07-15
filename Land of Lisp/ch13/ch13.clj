@@ -30,14 +30,14 @@
 (get-header (reader (char-array "foo: 1\nbar: abc, 123\n\n")))
 
 (defn hello-request-handler [path header params]
-  (if (= path "greeting")
-    (if-let [name (get params "NAME")]
+  (if (= "greeting" path)
+    (if-let [name (get params :name)]
       (println (format "<html>Nice to meet you, %s!</html>" name))
-      (println "<html><form>Name?<input name='name'/></form></html>"))
+      (println "<html><form>Name: <input name='name'/></form></html>"))
     (println "Sorry... I don't know that page.")))
 
 (hello-request-handler "lolcats" nil nil)
 (hello-request-handler "greeting" nil nil)
-(hello-request-handler "greeting" nil {"NAME" "Bob"})
+(hello-request-handler "greeting" nil {:name "Bob"})
 
 (serve hello-request-handler)

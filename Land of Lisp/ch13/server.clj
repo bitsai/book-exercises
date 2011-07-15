@@ -21,7 +21,7 @@
   (when s
     (into {} (for [pair (str/split s #"&")]
                (let [[name value] (str/split pair #"=")]
-                 [(str/upper-case name) (decode-param value)])))))
+                 [(keyword name) (decode-param value)])))))
 
 (defn parse-url [s]
   (let [[_ url params] (re-find #"^\S+ /([^\s?]+)\?*(\S+)* \S+$" s)]
@@ -29,16 +29,16 @@
 
 (defn get-header-lines [rdr]
   (let [line (.readLine rdr)]
-    (if (seq line)
+    (when (seq line)
       (cons line (get-header-lines rdr)))))
 
 (defn get-header [rdr]
   (into {} (for [line (get-header-lines rdr)]
              (let [[name value] (str/split line #":")]
-               [(str/upper-case (str/trim name)) (str/trim value)]))))
+               [(keyword (str/trim name)) (str/trim value)]))))
 
 (defn get-content-params [rdr header]
-  (if-let [length (header "CONTENT-LENGTH")]
+  (when-let [length (header :content-length)]
     (let [content (char-array length)]
       (.read rdr content)
       (parse-params (apply str content)))))
