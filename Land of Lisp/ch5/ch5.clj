@@ -11,6 +11,7 @@
 (map describe-path '[[garden west door] [attic upstairs ladder]])
 (map #(Math/sqrt %) [1 2 3 4 5])
 (map first '[[foo bar] [baz qux]])
+(map #(first %) '[[foo bar] [baz qux]])
 ;; does not work in Clojure, which is a Lisp-1
 (let [first "Honda Civic"]
   (map first '[[foo bar] [baz qux]]))
@@ -30,8 +31,8 @@
 (walk 'west)
 
 (def *foo* (atom [1 2 3]))
-(swap! *foo* conj 7)
-(deref *foo*)
+(swap! *foo* #(cons 7 %))
+@*foo*
 (walk 'east)
 (pickup 'whiskey)
 
