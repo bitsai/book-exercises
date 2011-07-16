@@ -1,5 +1,4 @@
-(use 'wizard)
-
+(use 'wizard-v1)
 (nodes 'garden)
 (describe-location 'living-room nodes)
 
