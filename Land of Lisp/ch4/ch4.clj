@@ -97,7 +97,7 @@
       (= fruit 'orange) 'its-an-orange)
 (= 'apple 'apple)
 (= [1 2 3] [1 2 3])
-(= [1 2 3] (cons 1 (cons 2 (cons 3 nil))))
+(= [1 2 3] (cons 1 (cons 2 (cons 3 []))))
 (= 5 5)
 (= 2.5 2.5)
 (= "foo" "foo")

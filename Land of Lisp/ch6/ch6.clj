@@ -21,17 +21,17 @@
     (prn "When I add five I get")
     (prn (+ num 5))))
 (add-five)
-(pr 3)
-(pr 3.4)
-(pr 'foo)
-(pr "foo")
-(pr \a)
+(prn 3)
+(prn 3.4)
+(prn 'foo)
+(prn "foo")
+(prn \a)
 
-(print 3)
-(print 3.4)
-(print 'foo)
-(print "foo")
-(print \a)
+(println 3)
+(println 3.4)
+(println 'foo)
+(println "foo")
+(println \a)
 (do (print "This sentence will be interrupted")
     (print \newline)
     (print "by an annoying newline character."))
@@ -41,20 +41,19 @@
     (println "Nice to meet you," name)))
 (say-hello)
 
-(quote (+ 1 2))
+'(+ 1 2)
 (+ 1 2)
 (def foo '(+ 1 2))
 (eval foo)
 
-(use 'wizard)
-(defn game-repl []
+(use 'wizard-v2)
+(defn game-repl* []
   (loop []
     (println (eval (read)))
     (recur)))
-(game-repl)
+(game-repl*)
 (look)
 
-(use 'game-repl)
 (game-read)
 
 (game-print '[THIS IS A SENTENCE. WHAT ABOUT THIS? PROBABLY.])
