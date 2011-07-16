@@ -16,20 +16,20 @@
     ""))
 
 (defn nodes->dot [nodes]
-  (doseq [[name _ :as node] nodes]
-    (print (dot-name name))
+  (doseq [node nodes]
+    (print (dot-name (first node)))
     (print "[label=\"")
     (print (dot-label node))
     (println "\"];")))
 
 (defn edges->dot [edges]
-  (doseq [[src paths] edges
-	  [dst & content] paths]
+  (doseq [[src src-edges] edges
+	  [dst & exp] src-edges]
     (print (dot-name src))
     (print "->")
     (print (dot-name dst))
     (print "[label=\"")
-    (print (dot-label content))
+    (print (dot-label exp))
     (println "\"];")))
 
 (defn graph->dot [nodes edges]
@@ -47,22 +47,23 @@
 (defn graph->png [fname nodes edges]
   (dot->png fname #(graph->dot nodes edges)))
 
-(defn has-edge-to? [src dst edges]
-  (let [paths (edges src)]
-    (some #(= (first %) dst) paths)))
+(defn maplist [f coll]
+  (when (seq coll)
+    (f coll)
+    (recur f (rest coll))))
 
 (defn uedges->dot [edges]
-  (loop [[[src paths] & next-edges] (seq edges)]
-    (when src
-      (doseq [[dst & content] paths]
-	(when-not (has-edge-to? dst src (into {} next-edges))
-	  (print (dot-name src))
-	  (print "--")
-	  (print (dot-name dst))
-	  (print "[label=\"")
-	  (print (dot-label content))
-	  (println "\"];")))
-      (recur next-edges))))
+  (maplist (fn [cur-edges]
+             (let [[src src-edges] (first cur-edges)]
+               (doseq [[dst & exp] src-edges]
+                 (when-not (some #(= dst (first %)) (rest edges))
+                   (print (dot-name src))
+                   (print "--")
+                   (print (dot-name dst))
+                   (print "[label=\"")
+                   (print (dot-label exp))
+                   (println "\"];")))))
+           (seq edges)))
 
 (defn ugraph->dot [nodes edges]
   (println "graph{")
