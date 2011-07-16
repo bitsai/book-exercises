@@ -84,11 +84,13 @@
 (if (some #{nil} [3 4 nil 5]) ;; returns nil (false) in Clojure
   'nil-is-in-the-list
   'nil-is-not-in-the-list)
-(first (filter odd? [2 4 5 6]))
-(if (first (filter odd? [2 4 5 6]))
+(defn find-if [pred coll]
+  (first (filter pred coll)))
+(find-if odd? [2 4 5 6])
+(if (find-if odd? [2 4 5 6])
   'there-is-an-odd-number
   'there-is-no-odd-number)
-(first (filter nil? [2 4 nil 6]))
+(find-if nil? [2 4 nil 6])
 
 (def fruit 'apple)
 (cond (= fruit 'apple) 'its-an-apple
