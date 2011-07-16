@@ -8,7 +8,7 @@
   (if (seq lst)
     (inc (my-length (rest lst)))
     0))
-(my-length '(list with four symbols))
+(my-length '[list with four symbols])
 
 (= [] nil) ;; false in Clojure
 (= [] ())
@@ -52,21 +52,21 @@
 (def *arch-enemy* (atom nil))
 (defn pudding-eater [p]
   (cond (= p 'henry) (do (reset! *arch-enemy* 'stupid-lisp-alien)
-                         '(curse you lisp alien - you ate my pudding))
+                         '[curse you lisp alien - you ate my pudding])
         (= p 'johnny) (do (reset! *arch-enemy* 'useless-old-johnny)
-                          '(i hope you choked on my pudding johnny))
-        :else '(why you eat my pudding stranger ?)))
+                          '[i hope you choked on my pudding johnny])
+        :else '[why you eat my pudding stranger ?]))
 (pudding-eater 'johnny)
 @*arch-enemy*
 (pudding-eater 'george-clooney)
 
 (defn pudding-eater [p]
   (case p
-    'henry (do (reset! arch-enemy 'stupid-lisp-alien)
-               '(curse you lisp alien - you ate my pudding))
-    'johnny (do (reset! arch-enemy 'useless-old-johnny)
-                '(i hope you choked on my pudding johnny))
-    '(why you eat my pudding stranger ?)))
+    'henry (do (reset! *arch-enemy* 'stupid-lisp-alien)
+               '[curse you lisp alien - you ate my pudding])
+    'johnny (do (reset! *arch-enemy* 'useless-old-johnny)
+                '[i hope you choked on my pudding johnny])
+    '[why you eat my pudding stranger ?]))
 
 (and (odd? 5) (odd? 7) (odd? 9))
 (or (odd? 4) (odd? 7) (odd? 8))
@@ -94,7 +94,7 @@
 (cond (= fruit 'apple) 'its-an-apple
       (= fruit 'orange) 'its-an-orange)
 (= 'apple 'apple)
-(= (list 1 2 3) (list 1 2 3))
+(= [1 2 3] [1 2 3])
 (= [1 2 3] (cons 1 (cons 2 (cons 3 nil))))
 (= 5 5)
 (= 2.5 2.5)
