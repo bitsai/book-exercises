@@ -17,9 +17,9 @@
   (map first '[[foo bar] [baz qux]]))
 
 (concat '[mary had] '[a] '[little lamb])
-(apply concat '[[mary had] [a] [little lamb]])
-(apply concat '[[THERE IS A DOOR GOING WEST FROM HERE.]
-                [THERE IS A LADDER GOING UPSTAIRS FROM HERE.]])
+(reduce into '[[mary had] [a] [little lamb]])
+(reduce into '[[THERE IS A DOOR GOING WEST FROM HERE.]
+               [THERE IS A LADDER GOING UPSTAIRS FROM HERE.]])
 
 (objects-at 'living-room objects @*object-locations*)
 

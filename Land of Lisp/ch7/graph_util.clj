@@ -56,7 +56,7 @@
   (maplist (fn [cur-edges]
              (let [[src src-edges] (first cur-edges)]
                (doseq [[dst & exp] src-edges]
-                 (when-not (some #(= dst (first %)) (rest edges))
+                 (when-not (some #(= dst (first %)) (rest cur-edges))
                    (print (dot-name src))
                    (print "--")
                    (print (dot-name dst))
