@@ -1,4 +1,5 @@
-(ns battle)
+(ns orc-battle
+  (:require [clojure.string :as str]))
 
 (def *player-health* (atom nil))
 (def *player-agility* (atom nil))
@@ -6,7 +7,7 @@
 
 (def *monsters* (atom nil))
 (def *monster-builders* (atom nil))
-(def *monster-num* 12)
+(def monster-num 12)
 
 (defn indexed [coll]
   (map list (range) coll))
@@ -14,30 +15,31 @@
 (defn randval [n]
   (inc (rand-int (max 1 n))))
 
+(defn type-of [x]
+  (let [strs (str/split (str (type x)) #"\.")]
+    (last strs)))
+
 (defn monster-dead? [m]
   (<= (:health m) 0))
 
-(defn type-name [m]
-  (subs (.getName (type m)) (inc (count (str *ns*)))))
-
-;; Monsters
-(defmulti monster-hit (fn [[idx m] x] (class m)))
-(defmethod monster-hit ::monster [[idx m] x]
+;; The Generic Monster
+(defmulti monster-hit (fn [[idx m] x] (type m)))
+(defmethod monster-hit ::Monster [[idx m] x]
   (let [new-m (update-in m [:health] - x)]
     (if (monster-dead? new-m)
-      (println (str "You killed the " (type-name m) "!"))
-      (println "You hit the" (type-name m) "for" x "health!"))
+      (println (str "You killed the " (type-of m) "!"))
+      (println "You hit the" (type-of m) "for" x "health!"))
     (swap! *monsters* assoc idx new-m)))
 
-(defmulti monster-show class)
-(defmethod monster-show ::monster [m]
-  (str "A fierce " (type-name m)))
+(defmulti monster-show type)
+(defmethod monster-show ::Monster [m]
+  (str "A fierce " (type-of m)))
 
-(defmulti monster-attack (fn [idx m] (class m)))
+(defmulti monster-attack (fn [idx m] (type m)))
 
-;; Orc
+;; The Wicked Orc
 (defrecord orc [health club-level])
-(derive orc ::monster)
+(derive orc ::Monster)
 (swap! *monster-builders* conj #(orc. (randval 10) (randval 8)))
 
 (defmethod monster-show orc [m]
@@ -48,9 +50,9 @@
     (println "An orc swings his club at you for" x "health!")
     (swap! *player-health* - x)))
 
-;; Hydra
+;; The Malicious Hydra
 (defrecord hydra [health])
-(derive hydra ::monster)
+(derive hydra ::Monster)
 (swap! *monster-builders* conj #(hydra. (randval 10)))
 
 (defmethod monster-show hydra [m]
@@ -71,46 +73,43 @@
     (println "It also grows back 1 more head!")
     (swap! *monsters* assoc idx new-m)))
 
-;; Slime
-(defrecord slime [health sliminess])
-(derive slime ::monster)
-(swap! *monster-builders* conj #(slime. (randval 10) (randval 5)))
+;; The Slimey Slime Mold
+(defrecord slime-mold [health sliminess])
+(derive slime-mold ::Monster)
+(swap! *monster-builders* conj #(slime-mold. (randval 10) (randval 5)))
 
-(defmethod monster-show slime [m]
-  (str "A slime with a sliminess of " (:sliminess m)))
+(defmethod monster-show slime-mold [m]
+  (str "A slime mold with a sliminess of " (:sliminess m)))
 
-(defmethod monster-attack slime [idx m]
+(defmethod monster-attack slime-mold [idx m]
   (let [x (randval (:sliminess m))]
-    (println "A slime wraps around your legs for" x "agility!")
+    (println "A slime mold wraps around your legs for" x "agility!")
     (swap! *player-agility* - x)
     (when (zero? (rand-int 2))
       (println "It also squirts in your face for 1 health!")
       (swap! *player-health* dec))))
 
-;; Brigand
+;; The Cunning Brigand
 (defrecord brigand [health])
-(derive brigand ::monster)
+(derive brigand ::Monster)
 (swap! *monster-builders* conj #(brigand. (randval 10)))
 
 (defmethod monster-attack brigand [idx m]
   (let [x (max @*player-health* @*player-agility* @*player-strength*)]
     (cond (= x @*player-health*)
-          (do
-            (println "A brigand hits with his slingshot for 2 health!")
-            (swap! *player-health* - 2))
+          (do (println "A brigand hits with his slingshot for 2 health!")
+              (swap! *player-health* - 2))
           (= x @*player-agility*)
-          (do
-            (println "A brigand whips your leg for 2 agility!")
-            (swap! *player-agility* - 2))
+          (do (println "A brigand whips your leg for 2 agility!")
+              (swap! *player-agility* - 2))
           :else
-          (do
-            (println "A brigand whips your arm for 2 strength!")
-            (swap! *player-strength* - 2)))))
+          (do (println "A brigand whips your arm for 2 strength!")
+              (swap! *player-strength* - 2)))))
 
 ;; Monster management functions
 (defn init-monsters []
-  (let [make-random-monster #((rand-nth @*monster-builders*))
-        new-monsters (vec (repeatedly *monster-num* make-random-monster))]
+  (let [build-monster #((rand-nth @*monster-builders*))
+        new-monsters (vec (repeatedly monster-num build-monster))]
     (reset! *monsters* new-monsters)))
 
 (defn monsters-dead? []
@@ -134,7 +133,7 @@
 (defn pick-monster []
   (println "Monster #:")
   (let [x (read)]
-    (if-not (and (integer? x) (<= 1 x *monster-num*))
+    (if-not (and (integer? x) (<= 1 x monster-num))
       (do (println "That is not a valid monster number.")
 	  (recur))
       (let [m (nth @*monsters* (dec x))]
@@ -153,10 +152,13 @@
   (<= @*player-health* 0))
 
 (defn show-player []
-  (println "[Valiant Knight]"
-           @*player-health* "health,"
-	   @*player-agility* "agility,"
-           @*player-strength* "strength"))
+  (println (str "You are a valiant knight with a health of "
+                @*player-health*
+                ", an agility of "
+                @*player-agility*
+                ", and a strength of "
+                @*player-strength*
+                ".")))
 
 (defn player-attack []
   (println "Attack style: [s]tab [d]ouble swing [r]oundhouse")
@@ -184,20 +186,18 @@
 	(show-monsters)
 	(player-attack)))
     (when-not (monsters-dead?)
-      (newline)
-      (doseq [[idx m] (indexed @*monsters*)]
-        (when-not (monster-dead? m)
-          (monster-attack idx m))))
+      (newline))
+    (doseq [[idx m] (indexed @*monsters*)]
+      (when-not (monster-dead? m)
+        (monster-attack idx m)))
     (newline)
     (recur)))
 
-(defn battle []
+(defn orc-battle []
   (init-monsters)
   (init-player)
   (game-loop)
-  (cond (player-dead?)
-        (println "You have been killed. Game over.")
-        (monsters-dead?)
-        (println "Congratulations! You vanquished all foes.")))
-
-(battle)
+  (when (player-dead?)
+    (println "You have been killed. Game over."))
+  (when (monsters-dead?)
+    (println "Congratulations! You vanquished all of your foes.")))

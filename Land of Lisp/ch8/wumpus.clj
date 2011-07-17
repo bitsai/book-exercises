@@ -52,10 +52,10 @@
   (concat (connect-islands (find-islands nodes edge-list)) edge-list))
 
 (defn edges-to-map [edge-list]
-  (into {} (for [[node1 _] edge-list]
-             (let [edges (direct-edges node1 edge-list)
-                   neighbors (distinct (map second edges))]
-               [node1 neighbors]))))
+  (reduce (fn [tab [a b]]
+            (update-in tab [a] conj b))
+          {}
+          edge-list))
 
 (defn add-cops [edge-map edges-with-cops]
   (let [cops (set edges-with-cops)]
