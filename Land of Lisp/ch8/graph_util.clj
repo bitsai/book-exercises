@@ -1,5 +1,4 @@
 (ns graph-util
-  (:use [clojure.java.io :only (writer)])
   (:require [clojure.string :as str]))
 
 (def max-label-length 30)
@@ -39,9 +38,8 @@
   (println "}"))
 
 (defn dot->png [fname thunk]
-  (binding [*out* (writer fname)]
-    (thunk)
-    (.close *out*))
+  (let [s (with-out-str (thunk))]
+    (spit fname s))
   (.exec (Runtime/getRuntime) (str "dot -Tpng -O " fname)))
 
 (defn graph->png [fname nodes edges]

@@ -53,10 +53,8 @@
 
 (graph->dot wizard-nodes wizard-edges)
 
-(use '[clojure.java.io :only (writer)])
-(binding [*out* (writer "testfile.txt")]
-  (println "Hello File!")
-  (.close *out*))
+(let [s (with-out-str (println "Hello File!"))]
+  (spit "testfile.txt" s))
 
 (let [cigar 5]
   cigar)
