@@ -93,7 +93,7 @@
   (let [s (pr-str lst)
 	trimmed (subs s 1 (dec (count s)))
 	tweaked (tweak-text trimmed true false)]
-    (println (apply str tweaked))))
+    (println (reduce str tweaked))))
 
 (defn game-repl []
   (let [cmd (game-read)]

@@ -1,10 +1,11 @@
 (ns evolution)
 
-(def *width* 70)
-(def *height* 30)
-(def *jungle* [30 10 10 10])
-(def *plant-energy* 80)
-(def *reproduction-energy* 200)
+(def width 70)
+(def height 30)
+(def jungle [30 10 10 10])
+(def plant-energy 80)
+(def reproduction-energy 200)
+
 (def *plants* (atom #{}))
 (def *animals* (atom []))
 
@@ -13,87 +14,91 @@
     (swap! *plants* conj pos)))
 
 (defn add-plants []
-  (apply random-plant *jungle*)
-  (random-plant 0 0 *width* *height*))
+  (apply random-plant jungle)
+  (random-plant 0 0 width height))
 
 (defrecord animal [x y energy dir genes])
 
-(swap! *animals* conj (animal. (quot *width* 2) (quot *height* 2)
-			       1000 0
-			       (vec (repeatedly 8 #(inc (rand-int 10))))))
+(let [genes (vec (repeatedly 8 #(inc (rand-int 10))))
+      adam (animal. (quot width 2) (quot height 2) 1000 0 genes)]
+  (swap! *animals* conj adam))
 
-(defn angle [[gene & genes] n]
-  (let [new-n (- n gene)]
-    (if (neg? new-n)
-      0
-      (inc (angle genes new-n)))))
-
-(defn turn [{:keys [dir genes] :as animal}]
-  (let [n (rand-int (reduce + genes))
-	new-dir (mod (+ dir (angle genes n)) 8)]
-    (assoc animal :dir new-dir)))
-
-(defn move [{:keys [x y energy dir] :as animal}]
-  (let [new-x (mod (+ x (cond
-			 (#{2 3 4} dir) 1
-			 (#{0 6 7} dir) -1
-			 :else 0))
-		   *width*)
-	new-y (mod (+ y (cond
-			 (#{4 5 6} dir) 1
-			 (#{0 1 2} dir) -1
-			 :else 0))
-		   *height*)]
+(defn move [animal]
+  (let [{:keys [x y energy dir]} animal
+        new-x (rem (+ x
+                      (cond (<= 2 dir 4) 1
+                            (#{1 5} dir) 0
+                            :else -1)
+                      width)
+		   width)
+	new-y (rem (+ y
+                      (cond (<= 0 dir 2) -1
+                            (<= 4 dir 6) 1
+                            :else 0)
+                      height)
+		   height)]
     (assoc animal :x new-x :y new-y :energy (dec energy))))
 
-(defn eat [{:keys [x y energy] :as animal}]
-  (let [pos [x y]]
+(defn angle [genes x]
+  (let [[g & gs] genes
+        new-x (- x g)]
+    (if (neg? new-x)
+      0
+      (inc (angle gs new-x)))))
+
+(defn turn [animal]
+  (let [{:keys [dir genes]} animal
+        x (rand-int (reduce + genes))
+	new-dir (rem (+ dir (angle genes x)) 8)]
+    (assoc animal :dir new-dir)))
+
+(defn eat [animal]
+  (let [{:keys [x y energy]} animal
+        pos [x y]]
     (if (@*plants* pos)
-      (do
-	(swap! *plants* disj pos)
-	(update-in animal [:energy] + *plant-energy*))
+      (do (swap! *plants* disj pos)
+          (update-in animal [:energy] + plant-energy))
       animal)))
 
-(defn reproduce [{:keys [energy genes] :as animal}]
-  (if (< energy *reproduction-energy*)
-    [animal]
-    (let [new-e (quot energy 2)
-	  i (rand-int 8)
-	  new-gene (max 1 (+ (genes i) (dec (rand-int 3))))
-	  new-genes (assoc genes i new-gene)]
-      [(assoc animal :energy new-e)
-       (assoc animal :energy new-e :genes new-genes)])))
+(defn reproduce [animal]
+  (let [{:keys [energy genes]} animal]
+    (if (< energy reproduction-energy)
+      [animal]
+      (let [new-e (quot energy 2)
+            mutation (rand-int 8)
+            new-gene (max 1 (+ (genes mutation) (rand-int 3) -1))
+            new-genes (assoc genes mutation new-gene)]
+        [(assoc animal :energy new-e)
+         (assoc animal :energy new-e :genes new-genes)]))))
 
 (defn update-world []
   (reset! *animals* (remove #(<= (:energy %) 0) @*animals*))
-  (reset! *animals* (reduce into [] (map #(-> %
-					      turn
-					      move
-					      eat
-					      reproduce)
-					 @*animals*)))
+  (reset! *animals* (vec (mapcat (fn [animal]
+                                   (-> animal
+                                       turn
+                                       move
+                                       eat
+                                       reproduce))
+                                 @*animals*)))
   (add-plants))
 
 (defn draw-world []
-  (doseq [y (range *height*)]
+  (doseq [y (range height)]
     (print "|")
-    (doseq [x (range *width*)]
-      (print (cond
-	      (some #(= [x y] [(:x %) (:y %)]) @*animals*) "X"
-	      (@*plants* [x y]) "O"
-	      :else " ")))
+    (doseq [x (range width)]
+      (print (cond (some #(= [x y] [(:x %) (:y %)]) @*animals*) \M
+                   (@*plants* [x y]) \*
+                   :else \space)))
     (println "|")))
 
 (defn evolution []
   (draw-world)
-  (let [x (read)]
-    (when (not= x 'quit)
-      (if (number? x)
+  (let [s (read-line)]
+    (when-not (= "quit" s)
+      (if-let [x (try (Integer/parseInt s) (catch Exception _))]
 	(doseq [i (range x)]
 	  (update-world)
-	  (if (zero? (mod i 1000))
-	    (println ".")))
+	  (when (zero? (rem i 1000))
+	    (println \.)))
 	(update-world))
       (recur))))
-
-(evolution)

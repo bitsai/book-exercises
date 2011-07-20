@@ -1,7 +1,7 @@
 (cons 1 (cons 2 (cons 3 nil)))
 
 (cons 1 (cons 2 3)) ;; Clojure doesn't have dotted lists
-'(1 2 3)
+[1 2 3]
 
 [2 3] ;; Pairs, the Clojure way
 
@@ -44,8 +44,9 @@
     (if (pred x)
       substitute
       x)))
-(apply str (substitute-if \e #(Character/isDigit %) "I'm a l33t hack3r!"))
-(substitute-if 0 odd? '(1 2 3 4 5 6 7 8))
+(let [digit-char? (fn [c] (Character/isDigit c))]
+  (reduce str (substitute-if \e digit-char? "I'm a l33t hack3r!")))
+(substitute-if 0 odd? [1 2 3 4 5 6 7 8])
 
 (nodes->dot wizard-nodes)
 
