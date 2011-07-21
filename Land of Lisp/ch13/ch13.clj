@@ -5,18 +5,16 @@
 
 (defn bad-function []
   (throw foo))
-(try
-  (bad-function)
-  (catch Exception e
-    (println "somebody threw an Exception!"))
-  (catch ClassNotFoundException e
-    (println "somebody threw a ClassNotFoundException!")))
+(try (bad-function)
+     (catch Exception e
+       (println "somebody threw an Exception!"))
+     (catch ClassNotFoundException e
+       (println "somebody threw a ClassNotFoundException!")))
 
-(try
-  (/ 1 0)
-  (finally (println "I need to say 'flubyduby' no matter what")))
+(try (/ 1 0)
+     (finally (println "I need to say 'flubyduby' no matter what")))
 
-(use 'server)
+(use 'web-server)
 (decode-param "foo")
 (decode-param "foo%3F")
 (decode-param "foo+bar")
@@ -31,13 +29,13 @@
 
 (defn hello-request-handler [path header params]
   (if (= "greeting" path)
-    (if-let [name (get params :name)]
+    (if-let [name (params :name)]
       (println (format "<html>Nice to meet you, %s!</html>" name))
       (println "<html><form>Name: <input name='name'/></form></html>"))
     (println "Sorry... I don't know that page.")))
 
-(hello-request-handler "lolcats" nil nil)
-(hello-request-handler "greeting" nil nil)
-(hello-request-handler "greeting" nil {:name "Bob"})
+(hello-request-handler "lolcats" {} {})
+(hello-request-handler "greeting" {} {})
+(hello-request-handler "greeting" {} {:name "Bob"})
 
 (serve hello-request-handler)
