@@ -15,8 +15,8 @@
 (defn randval [n]
   (inc (rand-int (max 1 n))))
 
-(defn type-of [x]
-  (let [strs (str/split (str (type x)) #"\.")]
+(defn type-of [m]
+  (let [strs (str/split (str (type m)) #"\.")]
     (last strs)))
 
 (defn monster-dead? [m]
@@ -74,16 +74,16 @@
     (swap! *monsters* assoc idx new-m)))
 
 ;; The Slimey Slime Mold
-(defrecord slime-mold [health sliminess])
-(derive slime-mold ::Monster)
-(swap! *monster-builders* conj #(slime-mold. (randval 10) (randval 5)))
+(defrecord slime [health sliminess])
+(derive slime ::Monster)
+(swap! *monster-builders* conj #(slime. (randval 10) (randval 5)))
 
-(defmethod monster-show slime-mold [m]
-  (str "A slime mold with a sliminess of " (:sliminess m)))
+(defmethod monster-show slime [m]
+  (str "A slime with a sliminess of " (:sliminess m)))
 
-(defmethod monster-attack slime-mold [idx m]
+(defmethod monster-attack slime [idx m]
   (let [x (randval (:sliminess m))]
-    (println "A slime mold wraps around your legs for" x "agility!")
+    (println "A slime wraps around your legs for" x "agility!")
     (swap! *player-agility* - x)
     (when (zero? (rand-int 2))
       (println "It also squirts in your face for 1 health!")
@@ -118,10 +118,10 @@
 (defn show-monsters []
   (println "Your foes:")
   (doseq [[idx m] (indexed @*monsters*)]
-    (print (str (inc idx) ". "))
-    (if (monster-dead? m)
-      (println "**dead**")
-      (println (str "(Health = " (:health m) ")") (monster-show m)))))
+    (println (str (inc idx) ".")
+             (if (monster-dead? m)
+               "**dead**"
+               (str "(Health " (:health m) ") " (monster-show m))))))
 
 ;; Helper functions for player attacks
 (defn random-monster []
@@ -152,13 +152,10 @@
   (<= @*player-health* 0))
 
 (defn show-player []
-  (println (str "You are a valiant knight with a health of "
-                @*player-health*
-                ", an agility of "
-                @*player-agility*
-                ", and a strength of "
-                @*player-strength*
-                ".")))
+  (println (str "Valiant Knight: "
+                "(Health " @*player-health* ") "
+                "(Agility " @*player-agility* ") "
+                "(Strength " @*player-strength* ")")))
 
 (defn player-attack []
   (println "Attack style: [s]tab [d]ouble swing [r]oundhouse")
@@ -200,4 +197,4 @@
   (when (player-dead?)
     (println "You have been killed. Game over."))
   (when (monsters-dead?)
-    (println "Congratulations! You vanquished all of your foes.")))
+    (println "Congratulations! You have vanquished all foes.")))
