@@ -10,15 +10,15 @@
   (recur))
 (main-loop)
 
-(def *my-list* (atom [4 7 2 4]))
+(def *my-list* (atom [4 7 2 3]))
 
 (doseq [n (range (count @*my-list*))]
   (swap! *my-list* assoc n (+ (nth @*my-list* n) 2)))
-(deref *my-list*)
+@*my-list*
 
-(defn add-two [[x & xs]]
-  (when x
-    (cons (+ 2 x) (add-two xs))))
-(add-two '(4 7 2 3))
+(defn add-two [lst]
+  (when (seq lst)
+    (cons (+ 2 (first lst)) (add-two (rest lst)))))
+(add-two [4 7 2 3])
 
-(map #(+ % 2) '(4 7 2 3))
+(map #(+ % 2) [4 7 2 3])
