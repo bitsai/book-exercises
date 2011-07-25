@@ -1,15 +1,15 @@
-(ns doom)
+(ns dod-v1)
 
 (def num-players 2)
 (def max-dice 3)
 (def board-size 3)
 (def board-hexnum (* board-size board-size))
 
-(defn third [coll]
-  (first (rest (rest coll))))
-
 (defn indexed [coll]
   (map list (range) coll))
+
+(defn third [coll]
+  (first (rest (rest coll))))
 
 (defn gen-board []
   (let [f (fn [] [(rand-int num-players) (inc (rand-int max-dice))])]
@@ -19,10 +19,10 @@
   (char (+ 97 n)))
 
 (defn draw-board [board]
-  (doseq [row (range board-size)]
-    (print (apply str (repeat (- board-size row) \space)))
-    (doseq [col (range board-size)]
-      (let [[player dice] (board (+ col (* board-size row)))]
+  (doseq [y (range board-size)]
+    (print (apply str (repeat (- board-size y) \space)))
+    (doseq [x (range board-size)]
+      (let [[player dice] (board (+ x (* board-size y)))]
         (print (str (player-letter player) "-" dice " "))))
     (newline)))
 
@@ -30,9 +30,9 @@
   (let [up (- pos board-size)
         down (+ pos board-size)]
     (for [p (concat [up down]
-                    (when-not (zero? (mod pos board-size))
+                    (when-not (zero? (rem pos board-size))
                       [(dec up) (dec pos)])
-                    (when-not (zero? (mod (inc pos) board-size))
+                    (when-not (zero? (rem (inc pos) board-size))
                       [(inc pos) (inc down)]))
           :when (< -1 p board-hexnum)]
       p)))
@@ -45,7 +45,7 @@
     dst [player (dec dice)]))
 
 (defn add-new-dice [board player spare-dice]
-  (letfn [(f [[[cur-player cur-dice] :as lst] n acc]
+  (let [f (fn [[[cur-player cur-dice] :as lst] n acc]
             (cond (zero? n) (into acc lst)
                   (empty? lst) acc
                   :else (if (and (= cur-player player)
@@ -76,7 +76,7 @@
     moves
     (cons [nil
            (game-tree (add-new-dice board player (dec spare-dice))
-                      (mod (inc player) num-players)
+                      (rem (inc player) num-players)
                       0
                       true)]
           moves)))
@@ -84,24 +84,22 @@
 (defn attacking-moves [board cur-player spare-dice]
   (let [player (fn [pos] (first (board pos)))
         dice (fn [pos] (second (board pos)))]
-    (mapcat
-     (fn [src]
-       (when (= cur-player (player src))
-         (mapcat
-          (fn [dst]
-            (when (and (not= cur-player (player dst))
-                       (> (dice src) (dice dst)))
-              [[[src dst]
-                (game-tree (board-attack board
+    (mapcat (fn [src]
+              (when (= cur-player (player src))
+                (mapcat (fn [dst]
+                          (when (and (not= cur-player (player dst))
+                                     (> (dice src) (dice dst)))
+                            [[[src dst]
+                              (game-tree (board-attack board
+                                                       cur-player
+                                                       src
+                                                       dst
+                                                       (dice src))
                                          cur-player
-                                         src
-                                         dst
-                                         (dice src))
-                           cur-player
-                           (+ spare-dice (dice dst))
-                           false)]]))
-          (neighbors src))))
-     (range board-hexnum))))
+                                         (+ spare-dice (dice dst))
+                                         false)]]))
+                        (neighbors src))))
+            (range board-hexnum))))
 
 (defn print-info [tree]
   (println "current player =" (player-letter (first tree)))
@@ -109,17 +107,13 @@
 
 (defn handle-human [tree]
   (println "choose your move:")
-  (let [print-moves (fn print-moves [moves n]
-                      (when (seq moves)
-                        (let [move (first moves)
-                              action (first move)]
-                          (print (str n ". "))
-                          (if action
-                            (println (first action) "->" (second action))
-                            (println "end turn"))
-                          (recur (rest moves) (inc n)))))
-        moves (third tree)]
-    (print-moves moves 1)
+  (let [moves (third tree)]
+    (doseq [[n move] (indexed moves)]
+      (let [action (first move)]
+        (println (str (inc n) ".")
+                 (if action
+                   (str (first action) " -> " (second action))
+                   "end turn"))))
     (second (nth moves (dec (read))))))
 
 (defn winners [board]
@@ -131,8 +125,8 @@
 (defn announce-winners [board]
   (let [ws (winners board)]
     (if (> (count ws) 1)
-      (println (str "The winners are " (map player-letter ws) "!"))
-      (println (str "The winner is " (player-letter (first ws)) "!")))))
+      (println (str "The winners are " (map player-letter ws)))
+      (println (str "The winner is " (player-letter (first ws)))))))
 
 (defn play-vs-human [tree]
   (print-info tree)
@@ -145,12 +139,13 @@
 (defn rate-position [tree player]
   (let [moves (third tree)]
     (if (seq moves)
-      (if (= player (first tree))
-        (apply max (get-ratings tree player))
-        (apply min (get-ratings tree player)))
-      (let [w (winners (second tree))]
-        (if (some #{player} w)
-          (/ 1 (count w))
+      (apply (if (= player (first tree))
+               max
+               min)
+             (get-ratings tree player))
+      (let [ws (winners (second tree))]
+        (if (some #{player} ws)
+          (/ 1 (count ws))
           0)))))
 
 (def rate-position (memoize rate-position))
