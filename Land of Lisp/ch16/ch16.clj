@@ -92,7 +92,7 @@
 
 (defn pairs [lst]
   (partition 2 lst))
-(pairs '(a b c d e f))
+(pairs '[a b c d e f])
 (defmacro recurse [vars & body]
   (let1 p (pairs vars)
         `(letfn [(~'self ~(vec (map first p))
