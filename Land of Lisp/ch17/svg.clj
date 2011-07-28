@@ -15,8 +15,8 @@
 
 (defmacro tag [name attributes & body]
   `(do (print-tag '~name
-                  (vector ~@(for [[attribute value] (pairs attributes)]
-                              `(vector '~attribute ~value)))
+                  [~@(for [[attribute value] (pairs attributes)]
+                       `['~attribute ~value])]
                   false)
        ~@body
        (print-tag '~name nil true)))

@@ -46,8 +46,7 @@
                                (repeatedly 3 #(rand-int 256))))))]
   (spit "random_walk.svg" output))
 
-(use 'game-repl)
-(use 'wizard)
+(use 'wizard-v3)
 (look)
 (game-repl)
 

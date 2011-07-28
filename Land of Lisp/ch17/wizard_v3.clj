@@ -1,22 +1,28 @@
-(ns wizard)
+(ns wizard-v3
+  (:require [clojure.string :as str]))
 
-(def nodes {'living-room '[you are in the living-room. a wizard is snoring loudly on the couch.]
-	    'garden '[you are in a beautiful garden. there is a well in front of you.]
-	    'attic '[you are in the attic. there is a giant welding torch in the corner.]})
+(def nodes '{living-room [you are in the living-room. a wizard is snoring
+                          loudly on the couch.]
+             garden [you are in a beautiful garden. there is a well in
+                     front of you.]
+             attic [you are in the attic. there is a giant welding torch
+                    in the corner.]})
 
-(def edges {'living-room '[[garden west door]
-			   [attic upstairs ladder]]
-	    'garden '[[living-room east door]]
-	    'attic '[[living-room downstairs ladder]]})
+(def edges '{living-room [[garden west door]
+                          [attic upstairs ladder]]
+             garden [[living-room east door]]
+             attic [[living-room downstairs ladder]]})
 
 (def objects '[whiskey bucket frog chain])
 
-(def *object-locations* (atom {'whiskey 'living-room
-                               'bucket 'living-room
-                               'chain 'garden
-                               'frog 'garden}))
+(def *object-locations* (atom '{whiskey living-room
+                                bucket living-room
+                                chain garden
+                                frog garden}))
 
 (def *location* (atom 'living-room))
+
+(def *allowed-commands* (atom '[look walk pickup inventory]))
 
 (def *chain-welded?* (atom false))
 
@@ -56,7 +62,7 @@
       '[you cannot go that way.])))
 
 (defn pickup [object]
-  (let [objs-at-loc (objects-at @*location* objects @*object-locations*)] 
+  (let [objs-at-loc (objects-at @*location* objects @*object-locations*)]
     (if (some #{object} objs-at-loc)
       (do (swap! *object-locations* assoc object 'body)
           ['you 'are 'now 'carrying 'the object])
@@ -64,6 +70,40 @@
 
 (defn inventory []
   (cons 'ITEMS- (objects-at 'body objects @*object-locations*)))
+
+(defn game-read []
+  (let [[action & args] (read-string (str "(" (read-line) ")"))
+	quote-it (fn [x] (list 'quote x))]
+    (cons action (map quote-it args))))
+
+(defn game-eval [sexp]
+  (if (some #{(first sexp)} @*allowed-commands*)
+    (eval sexp)
+    '[i do not know that command.]))
+
+(defn tweak-text [lst caps? lit?]
+  (when lst
+    (let [[item & rest] lst]
+      (cond (= \space item) (cons item (tweak-text rest caps? lit?))
+            (some #{item} "!?.") (cons item (tweak-text rest true lit?))
+            (= \" item) (tweak-text rest caps? (not lit?))
+            lit? (cons item (tweak-text rest false lit?))
+            caps? (cons (str/upper-case item)
+                        (tweak-text rest false lit?))
+            :else (cons (str/lower-case item)
+                        (tweak-text rest false false))))))
+
+(defn game-print [lst]
+  (let [s (pr-str lst)
+	trimmed (subs s 1 (dec (count s)))
+	tweaked (tweak-text trimmed true false)]
+    (println (reduce str tweaked))))
+
+(defn game-repl []
+  (let [cmd (game-read)]
+    (when-not (= 'quit (first cmd))
+      (game-print (game-eval cmd))
+      (recur))))
 
 (defn have? [object]
   (some #{object} (inventory)))
@@ -76,7 +116,7 @@
                   (have? '~subj))
            ~@body
            '[~'you ~'cannot ~command ~'like ~'that.]))
-       (swap! game-repl/*allowed-commands* conj '~command)))
+       (swap! *allowed-commands* conj '~command)))
 
 (game-action weld chain bucket attic
              (if (and (have? 'bucket) (not @*chain-welded?*))
@@ -91,8 +131,7 @@
                '[the water level is too low to reach.]))
 
 (game-action splash bucket wizard living-room
-             (cond (not @*bucket-filled?*) '[the bucket has nothing in
-                                             it.]
+             (cond (not @*bucket-filled?*) '[the bucket has nothing in it.]
                    (have? 'frog) '[the wizard awakens and sees that you
                                    stole his frog. he is so upset he
                                    banishes you to the netherworlds- you
