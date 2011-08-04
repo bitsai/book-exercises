@@ -12,20 +12,21 @@
             (catch Exception _ default)))))
 
 (defn decode-param [s]
-  (-> s
-      (str/replace #"%.." http-char)
-      (str/replace \+ \space)))
+  (when s
+    (-> s
+        (str/replace #"%.." http-char)
+        (str/replace \+ \space))))
 
 (defn parse-params [s]
-  (into {} (for [pair (str/split s #"&")]
-             (let [[name value] (str/split pair #"=")]
-               [(keyword name) (decode-param value)]))))
+  (if (nil? s)
+    {}
+    (into {} (for [pair (str/split s #"&")]
+               (let [[name value] (str/split pair #"=")]
+                 [(keyword name) (decode-param value)])))))
 
 (defn parse-url [s]
   (let [[_ url params] (re-find #"^\S+ /([^\s?]+)\?*(\S+)* \S+$" s)]
-    (if params
-      [url (parse-params params)]
-      [url {}])))
+    [url (parse-params params)]))
 
 (defn get-header-lines [rdr]
   (loop [lines []]

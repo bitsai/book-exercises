@@ -1,5 +1,5 @@
 (ns wumpus
-  (:use [graph-util]))
+  (:use graph-util))
 
 (def node-num 30)
 (def edge-num 45)

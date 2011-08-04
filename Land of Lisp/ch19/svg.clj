@@ -1,17 +1,6 @@
 (ns svg
   (:require [clojure.string :as str]))
 
-(defmacro let1 [var val & body]
-  `(let [~var ~val]
-     ~@body))
-
-(defmacro split [val yes no]
-  `(if (seq ~val)
-     (let [~'head (first ~val)
-           ~'tail (rest ~val)]
-       ~yes)
-     ~no))
-
 (defn print-tag [name attributes closing?]
   (print \<)
   (when closing?
@@ -26,8 +15,8 @@
 
 (defmacro tag [name attributes & body]
   `(do (print-tag '~name
-                  (vector ~@(for [[attribute value] (pairs attributes)]
-                              `(vector '~attribute ~value)))
+                  [~@(for [[attribute value] (pairs attributes)]
+                       `['~attribute ~value])]
                   false)
        ~@body
        (print-tag '~name nil true)))
