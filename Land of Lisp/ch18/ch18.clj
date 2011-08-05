@@ -19,11 +19,12 @@
 (take 10 '[q w e r t y u i o p a s d f])
 (doall '[q w e r t y u i o p a s d f])
 
-(take 10 (map #(Math/sqrt %) integers))
-(take 10 (mapcat (fn [x]
-                   (when (even? x)
-                     [x]))
-                 integers))
+(use 'lazy)
+(take 10 (map1 #(Math/sqrt %) integers))
+(take 10 (mapcat1 (fn [x]
+                    (when (even? x)
+                      [x]))
+                  integers))
 (first (filter odd? [2 4 6 7 8 10]))
 (nth '[a b c d e f g] 4)
 
