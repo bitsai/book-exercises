@@ -1,4 +1,5 @@
 (ns dod-v2
+  (:require [clojure.string :as str])
   (:use lazy))
 
 (def num-players 2)
@@ -125,10 +126,11 @@
     (map first (filter (fn [[player total]] (= best total)) totals))))
 
 (defn announce-winners [board]
-  (let [ws (winners board)]
+  (let [ws (winners board)
+        names (str/join " " (map player-letter ws))]
     (if (> (count ws) 1)
-      (println (str "The winners are " (map player-letter ws)))
-      (println (str "The winner is " (player-letter (first ws)))))))
+      (println (str "The winners are " names))
+      (println (str "The winner is " names)))))
 
 (defn play-vs-human [tree]
   (print-info tree)

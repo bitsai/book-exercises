@@ -1,14 +1,14 @@
-(ns dod-v3
+(ns dod-v4
   (:require [clojure.string :as str])
   (:use lazy)
   (:use svg)
   (:use web-server))
 
-(def num-players 2)
-(def max-dice 3)
+(def num-players 4)
+(def max-dice 5)
 (def board-size 5)
 (def board-hexnum (* board-size board-size))
-(def ai-level 4)
+(def ai-level 2)
 
 (def board-width 900)
 (def board-height 500)
@@ -16,7 +16,13 @@
 (def top-offset 3)
 (def dice-scale 40)
 (def dot-size 0.05)
-(def die-colors [[255 63 63] [63 63 255]])
+(def die-colors [[255 63 63] [63 63 255] [63 255 63] [255 63 255]])
+
+(def dice-odds [[0.84 0.97 1.00 1.00]
+                [0.44 0.78 0.94 0.99]
+                [0.15 0.45 0.74 0.91]
+                [0.04 0.19 0.46 0.72]
+                [0.01 0.06 0.22 0.46]])
 
 (def *cur-game-tree* (atom nil))
 (def *from-tile* (atom nil))
@@ -26,6 +32,21 @@
 
 (defn third [coll]
   (first (rest (rest coll))))
+
+(defn roll-dice [dice-num]
+  (let [total (reduce + (repeatedly dice-num #(inc (rand-int 6))))]
+    (print (str "On " dice-num " dice rolled " total ". "))
+    total))
+
+(defn roll-against [src-dice dst-dice]
+  (> (roll-dice src-dice) (roll-dice dst-dice)))
+
+(defn pick-chance-branch [board move]
+  (let [dice (fn [pos] (second (board pos)))
+        [src dst :as path] (first move)]
+    (if (or (nil? path) (roll-against (dice src) (dice dst)))
+      (second move)
+      (third move))))
 
 (defn gen-board []
   (let [f (fn [] [(rand-int num-players) (inc (rand-int max-dice))])]
@@ -60,19 +81,43 @@
     src [player 1]
     dst [player (dec dice)]))
 
-(defn add-new-dice [board player spare-dice]
-  (let [f (fn [[[cur-player cur-dice] :as lst] n acc]
-            (cond (zero? n) (into acc lst)
-                  (empty? lst) acc
+(defn get-connected [board player pos]
+  (letfn [(check-pos [pos visited]
+            (if (and (= player (first (board pos)))
+                     (not (visited pos)))
+              (check-neighbors (neighbors pos) (conj visited pos))
+              visited))
+          (check-neighbors [lst visited]
+            (if (seq lst)
+              (check-neighbors (rest lst) (check-pos (first lst) visited))
+              visited))]
+    (check-pos pos #{})))
+
+(defn largest-cluster-size [board player]
+  (let [f (fn f [pos visited best]
+            (if (< pos board-hexnum)
+              (if (and (= player (first (board pos)))
+                       (not (visited pos)))
+                (let [cluster (get-connected board player pos)
+                      size (count cluster)]
+                  (if (> size best)
+                    (f (inc pos) (into visited cluster) size)
+                    (f (inc pos) (into visited cluster) best)))
+                (f (inc pos) visited best))
+              best))]
+    (f 0 #{} 0)))
+
+(defn add-new-dice [board player _]
+  (let [f (fn f [[[cur-player cur-dice] :as lst] n]
+            (cond (zero? n) lst
+                  (empty? lst) nil
                   :else (if (and (= cur-player player)
                                  (< cur-dice max-dice))
-                          (recur (rest lst)
-                                 (dec n)
-                                 (conj acc [cur-player (inc cur-dice)]))
-                          (recur (rest lst)
-                                 n
-                                 (conj acc [cur-player cur-dice])))))]
-    (f board spare-dice [])))
+                          (cons [cur-player (inc cur-dice)]
+                                (f (rest lst) (dec n)))
+                          (cons [cur-player cur-dice]
+                                (f (rest lst) n)))))]
+    (vec (f board (largest-cluster-size board player)))))
 
 (declare game-tree add-passing-move attacking-moves)
 
@@ -97,6 +142,10 @@
                       true)]
           moves)))
 
+(defn board-attack-fail [board player src dst dice]
+  (assoc board
+    src [player 1]))
+
 (defn attacking-moves [board cur-player spare-dice]
   (let [player (fn [pos] (first (board pos)))
         dice (fn [pos] (second (board pos)))]
@@ -111,6 +160,14 @@
                                                          src
                                                          dst
                                                          (dice src))
+                                           cur-player
+                                           (+ spare-dice (dice dst))
+                                           false)
+                                (game-tree (board-attack-fail board
+                                                              cur-player
+                                                              src
+                                                              dst
+                                                              (dice src))
                                            cur-player
                                            (+ spare-dice (dice dst))
                                            false)]]))
@@ -130,7 +187,7 @@
                  (if action
                    (str (first action) " -> " (second action))
                    "end turn"))))
-    (second (nth moves (dec (read))))))
+    (pick-chance-branch (second tree) (nth moves (dec (read))))))
 
 (defn winners [board]
   (let [tally (map first board)
@@ -166,66 +223,48 @@
                   2)
                 -1))))
 
-(declare ab-get-ratings-max ab-get-ratings-min ab-rate-position)
+(declare rate-position get-ratings)
 
-(defn ab-get-ratings-max [tree player upper-limit lower-limit]
-  (let [f (fn f [moves lower-limit]
-            (when (seq moves)
-              (let [x (ab-rate-position (second (first moves))
-                                        player
-                                        upper-limit
-                                        lower-limit)]
-                (if (>= x upper-limit)
-                  [x]
-                  (cons x (f (rest moves) (max x lower-limit)))))))]
-    (f (third tree) lower-limit)))
-
-(defn ab-get-ratings-min [tree player upper-limit lower-limit]
-  (letfn [(f [moves upper-limit]
-            (when (seq moves)
-              (let [x (ab-rate-position (second (first moves))
-                                        player
-                                        upper-limit
-                                        lower-limit)]
-                (if (<= x lower-limit)
-                  [x]
-                  (cons x (f (rest moves) (min x upper-limit)))))))]
-    (f (third tree) upper-limit)))
-
-(defn ab-rate-position [tree player upper-limit lower-limit]
+(defn rate-position [tree player]
   (let [moves (third tree)]
     (if (seq moves)
-      (if (= player (first tree))
-        (apply max (ab-get-ratings-max tree
-                                       player
-                                       upper-limit
-                                       lower-limit))
-        (apply min (ab-get-ratings-min tree
-                                       player
-                                       upper-limit
-                                       lower-limit)))
+      (apply (if (= player (first tree))
+               max
+               min)
+             (get-ratings tree player))
       (score-board (second tree) player))))
+
+(def rate-position (memoize rate-position))
+
+(defn get-ratings [tree player]
+  (let [board (second tree)
+        dice (fn [pos] (second (board pos)))]
+    (map (fn [move]
+           (let [[src dst :as path] (first move)]
+             (if path
+               (let [odds ((dice-odds (dec (dice dst))) (- (dice src) 2))]
+                 (+ (* odds (rate-position (second move) player))
+                    (* (- 1 odds) (rate-position (third move) player))))
+               (rate-position (second move) player))))
+         (third tree))))
 
 (defn limit-tree-depth [tree depth]
   [(first tree)
    (second tree)
    (when (pos? depth)
      (map1 (fn [move]
-             [(first move)
-              (limit-tree-depth (second move) (dec depth))])
+             (cons (first move)
+                   (map #(limit-tree-depth % (dec depth)) (rest move))))
            (third tree)))])
 
 (defn handle-computer [tree]
-  (let [ratings (ab-get-ratings-max (limit-tree-depth tree ai-level)
-                                    (first tree)
-                                    Integer/MAX_VALUE
-                                    Integer/MIN_VALUE)
+  (let [ratings (get-ratings (limit-tree-depth tree ai-level) (first tree))
         idx-best (first (reduce (fn [x y]
                                   (if (>= (second x) (second y))
                                     x
                                     y))
                                 (indexed ratings)))]
-    (second (nth (third tree) idx-best))))
+    (pick-chance-branch (second tree) (nth (third tree) idx-best))))
 
 (defn play-vs-computer [tree]
   (print-info tree)
@@ -319,7 +358,9 @@
           (= @*from-tile* pos) (print "Please choose a destination.")
           :else (let [selected? (fn [move] (= [@*from-tile* pos]
                                               (first move)))
-                      next (second (first (filter selected? moves)))]
+                      move (first (filter selected? moves))
+                      next (pick-chance-branch (second @*cur-game-tree*)
+                                               move)]
                   (reset! *cur-game-tree* next)
                   (reset! *from-tile* nil)
                   (print "You may now ")
