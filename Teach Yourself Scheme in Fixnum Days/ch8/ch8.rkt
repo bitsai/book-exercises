@@ -1,44 +1,51 @@
 #lang racket
 
-;;Use hygienic macros
-(define-syntax-rule (when test branch ...)
-  (cond (test (begin branch ...))))
-(define-syntax-rule (unless test branch ...)
-  (cond ((not test) (begin branch ...))))
-(define-syntax-rule (unless test branch ...)
-  (when (not test)
-    branch ...))
+(require (lib "defmacro.ss"))
 
-(define-syntax-rule (my-or x y)
-  (if x
-      x
-      y))
+;;In Racket, if requires an else branch, so use cond instead
+(define-macro (when test . branch)
+  (list 'cond (cons test branch)))
+(define-macro (unless test . branch)
+  (list 'cond (cons (list 'not test) branch)))
+(define-macro (unless test . branch)
+  (cons 'when (cons (list 'not test) branch)))
+
+(define-macro (when test . branch)
+  `(cond (,test ,@branch)))
+
+(define-macro (my-or x y)
+  `(if ,x ,x ,y))
 (my-or 1 2)
 (my-or #f 2)
 (my-or (begin (display "doing first argument")
               (newline)
               #t)
        2)
-(define-syntax-rule (my-or x y)
-  (let ((temp x))
-    (if temp
-        temp
-        y)))
+(define-macro (my-or x y)
+  `(let ((temp ,x))
+     (if temp temp ,y)))
 (define temp 3)
-(my-or #f temp) ;;Works fine, thanks to hygienic macros
+(my-or #f temp)
+(define-macro (my-or x y)
+  `(let ((+temp ,x))
+     (if +temp +temp ,y)))
+(define-macro (my-or x y)
+  (let ((temp (gensym)))
+    `(let ((,temp ,x))
+       (if ,temp ,temp ,y))))
 
-;;Borrowed from: http://www.scheme.com/csug8/binding.html
-(define-syntax fluid-let
-  (lambda (x)
-    (syntax-case x ()
-      [(_ () b1 b2 ...) #'(let () b1 b2 ...)]
-      [(_ ((x e) ...) b1 b2 ...)
-       (andmap identifier? (syntax-e #'(x ...))) ;;Added syntax-e
-       (with-syntax ([(y ...) (generate-temporaries #'(x ...))])
-         #'(let ([y e] ...)
-             (let ([swap (lambda ()
-                           (let ([t x])
-                             (set! x y)
-                             (set! y t))
-                           ...)])
-               (dynamic-wind swap (lambda () b1 b2 ...) swap))))])))
+(define-macro (fluid-let xexe . body)
+  (let ((xx (map car xexe))
+        (ee (map cadr xexe))
+        (old-xx (map (lambda (ig) (gensym)) xexe))
+        (result (gensym)))
+    `(let ,(map (lambda (old-x x) `(,old-x ,x))
+                old-xx xx)
+       ,@(map (lambda (x e)
+                `(set! ,x ,e))
+              xx ee)
+       (let ((,result (begin ,@body)))
+         ,@(map (lambda (x old-x)
+                  `(set! ,x ,old-x))
+                xx old-xx)
+         ,result))))
