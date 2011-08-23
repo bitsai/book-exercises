@@ -1,26 +1,18 @@
 (ns lazy)
 
-;; From The Joy of Clojure
-(defn seq1
-  "Like seq, but returns an unchunked sequence."
-  [coll]
+;; Inspired by Joy of Clojure's seq1
+(defn- map-join [join f colls]
   (lazy-seq
-   (when-let [[x] (seq coll)]
-     (cons x (seq1 (rest coll))))))
+   (when (every? seq colls)
+     (join (apply f (map first colls))
+           (map-join join f (map rest colls))))))
 
 (defn map1
-  "Like map, but applies f one-at-a-time.  Returns an unchunked sequence."
+  "Like map, but returns a de-chunked/1-at-a-time lazy sequence."
   [f & colls]
-  (apply map f (map seq1 colls)))
-
-(defn join
-  "Like concat, but works on coll of colls.  Returns an unchunked sequence."
-  [colls]
-  (lazy-seq
-   (when-let [[x] (seq colls)]
-     (concat x (join (rest colls))))))
+  (map-join cons f colls))
 
 (defn mapcat1
-  "Like mapcat, but applies f one-at-a-time.  Returns an unchunked sequence."
+  "Like mapcat, but returns a de-chunked/1-at-a-time lazy sequence."
   [f & colls]
-  (join (apply map1 f colls)))
+  (map-join concat f colls))
