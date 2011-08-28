@@ -1,7 +1,6 @@
 #lang racket
 
 (require (lib "defmacro.ss"))
-
 ;;In Racket, if requires an else branch, so use cond instead
 (define-macro (when test . branch)
   (list 'cond (cons test branch)))

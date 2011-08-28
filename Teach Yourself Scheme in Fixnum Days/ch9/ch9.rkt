@@ -1,7 +1,6 @@
 #lang racket
 
 (require "struct.rkt")
-
 (defstruct tree height girth age leaf-shape leaf-color)
 (define coconut (make-tree 'height 30 'leaf-shape 'frond 'age 5))
 (tree.height coconut)

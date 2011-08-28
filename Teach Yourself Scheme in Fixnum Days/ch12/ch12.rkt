@@ -1,7 +1,6 @@
 #lang racket
 
 (require "object.rkt")
-
 (define trivial-bike-class (make-standard-class
                             'supers '()
                             'slots '(frame size parts)

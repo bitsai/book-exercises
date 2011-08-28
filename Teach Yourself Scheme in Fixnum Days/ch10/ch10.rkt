@@ -1,7 +1,6 @@
 #lang racket
 
 (require "table.rkt")
-
 (define t (make-table))
 (table? t)
 (table? #())
