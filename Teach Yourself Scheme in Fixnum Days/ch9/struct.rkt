@@ -1,8 +1,16 @@
 #lang racket
 
-(provide defstruct list-position)
+(provide (all-defined-out))
 
 (require (lib "defmacro.ss"))
+
+(define (list-position x lst)
+  (let loop ((i 0)
+             (lst lst))
+    (cond ((null? lst) #f)
+          ((eqv? x (car lst)) i)
+          (else (loop (+ i 1)
+                      (cdr lst))))))
 
 (define-macro (defstruct s . ff)
   (let* ((s-s (symbol->string s))
@@ -13,7 +21,7 @@
                (ff ff))
       (when (<= i n)
         (let ((f (car ff)))
-          (vector-set! vv i (if (pair? f) (cadr f) '(cond (#f #f))))
+          (vector-set! vv i (if (pair? f) (cadr f) '(when #f #f)))
           (loop (+ i 1)
                 (cdr ff)))))
     (let ((ff (map (lambda (f) (if (pair? f) (car f) f)) ff)))
@@ -57,11 +65,3 @@
            (and (vector? x)
                 (>= (vector-length x) 1)
                 (eqv? (vector-ref x 0) ',s)))))))
-
-(define (list-position x lst)
-  (let loop ((i 0)
-             (lst lst))
-    (cond ((null? lst) #f)
-          ((eqv? x (car lst)) i)
-          (else (loop (+ i 1)
-                      (cdr lst))))))

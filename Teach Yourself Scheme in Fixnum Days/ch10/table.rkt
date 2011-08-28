@@ -1,8 +1,6 @@
 #lang racket
 
-(provide make-table table?
-         table.equ set!table.equ table.alist set!table.alist
-         table-get table-put! table-for-each)
+(provide (all-defined-out))
 
 (require "struct.rkt")
 
