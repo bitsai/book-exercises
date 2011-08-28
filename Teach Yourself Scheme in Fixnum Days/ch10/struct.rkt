@@ -55,14 +55,13 @@
                            procs))))))
          (define (,(string->symbol (string-append s-s "?")) x)
            (and (vector? x)
+                (>= (vector-length x) 1)
                 (eqv? (vector-ref x 0) ',s)))))))
 
 (define (list-position x lst)
   (let loop ((i 0)
              (lst lst))
-    (if (null? lst)
-        #f
-        (if (eqv? x (car lst))
-            i
-            (loop (+ i 1)
-                  (cdr lst))))))
+    (cond ((null? lst) #f)
+          ((eqv? x (car lst)) i)
+          (else (loop (+ i 1)
+                      (cdr lst))))))
