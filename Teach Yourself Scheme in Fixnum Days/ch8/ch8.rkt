@@ -1,7 +1,7 @@
 #lang racket
 
-(require (lib "defmacro.ss"))
-;;In Racket, if requires an else branch, so use cond instead
+(require mzlib/defmacro)
+;;In Racket, an 'else' branch is mandatory for 'if', so use 'cond' instead
 (define-macro (when test . branch)
   (list 'cond (cons test branch)))
 (when #t (display "hi") (newline))
@@ -46,3 +46,11 @@
     `(let ((,temp ,x))
        (if ,temp ,temp ,y))))
 (my-or #f temp)
+
+(require "fluid-let.rkt")
+(define x 1)
+(define y 2)
+(fluid-let ((x 9)
+            (y (+ y 1)))
+  (display (+ x y))
+  (newline))
