@@ -1,13 +1,13 @@
 #lang racket
 
-(+ 1 (call/cc
-      (lambda (k)
-        (+ 2 (k 3)))))
+(add1 (call/cc
+       (lambda (k)
+         (+ 2 (k 3)))))
 (define r #f)
-(+ 1 (call/cc
-      (lambda (k)
-        (set! r k)
-        (+ 2 (k 3)))))
+(add1 (call/cc
+       (lambda (k)
+         (set! r k)
+         (+ 2 (k 3)))))
 (r 5)
 (+ 3 (r 5))
 
@@ -23,7 +23,7 @@
    (lambda (exit)
      (let recur ((lst lst))
        (cond ((null? lst) 1)
-             ((= 0 (car lst)) (exit 0))
+             ((zero? (car lst)) (exit 0))
              (else (* (car lst) (recur (cdr lst)))))))))
 (list-product '(1 2 3))
 (list-product '(0 1 2 3))

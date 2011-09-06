@@ -1,57 +1,57 @@
 #lang racket
 
 (define (factorial n)
-  (if (= n 0)
+  (if (zero? n)
       1
-      (* n (factorial (- n 1)))))
+      (* n (factorial (sub1 n)))))
 (define (is-even? n)
-  (if (= n 0)
+  (if (zero? n)
       #t
-      (is-odd? (- n 1))))
+      (is-odd? (sub1 n))))
 (define (is-odd? n)
-  (if (= n 0)
+  (if (zero? n)
       #f
-      (is-even? (- n 1))))
+      (is-even? (sub1 n))))
 
 (let ((local-even? (lambda (n)
-                     (if (= n 0)
+                     (if (zero? n)
                          #t
-                         (local-odd? (- n 1)))))
+                         (local-odd? (sub1 n)))))
       (local-odd? (lambda (n)
-                    (if (= n 0)
+                    (if (zero? n)
                         #f
-                        (local-even? (- n 1))))))
+                        (local-even? (sub1 n))))))
   (list (local-even? 23) (local-odd? 23)))
 (letrec ((local-even? (lambda (n)
-                        (if (= n 0)
+                        (if (zero? n)
                             #t
-                            (local-odd? (- n 1)))))
+                            (local-odd? (sub1 n)))))
          (local-odd? (lambda (n)
-                       (if (= n 0)
+                       (if (zero? n)
                            #f
-                           (local-even? (- n 1))))))
+                           (local-even? (sub1 n))))))
   (list (local-even? 23) (local-odd? 23)))
 
 (letrec ((countdown (lambda (i)
-                      (if (= i 0)
+                      (if (zero? i)
                           'liftoff
                           (begin (display i)
                                  (newline)
-                                 (countdown (- i 1)))))))
+                                 (countdown (sub1 i)))))))
   (countdown 10))
 (let countdown ((i 10))
-  (if (= i 0)
+  (if (zero? i)
       'liftoff
       (begin (display i)
              (newline)
-             (countdown (- i 1)))))
+             (countdown (sub1 i)))))
 
 (define (list-position o l)
   (let loop ((i 0)
              (l l))
     (cond ((null? l) #f)
           ((eqv? o (car l)) i)
-          (else (loop (+ i 1)
+          (else (loop (add1 i)
                       (cdr l))))))
 (define (reverse! s)
   (let loop ((s s)

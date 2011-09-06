@@ -9,20 +9,20 @@
              (lst lst))
     (cond ((null? lst) #f)
           ((eqv? x (car lst)) i)
-          (else (loop (+ i 1)
+          (else (loop (add1 i)
                       (cdr lst))))))
 
 (define-macro (defstruct s . ff)
   (let* ((s-s (symbol->string s))
          (n (length ff))
-         (n+1 (+ n 1))
+         (n+1 (add1 n))
          (vv (make-vector n+1)))
     (let loop ((i 1)
                (ff ff))
       (when (<= i n)
         (let ((f (car ff)))
           (vector-set! vv i (if (pair? f) (cadr f) '(when #f #f)))
-          (loop (+ i 1)
+          (loop (add1 i)
                 (cdr ff)))))
     (let ((ff (map (lambda (f) (if (pair? f) (car f) f)) ff)))
       `(begin
@@ -34,13 +34,13 @@
                           (r '()))
                  (if (>= i n+1)
                      r
-                     (loop (+ i 1)
+                     (loop (add1 i)
                            (cons `(vector-set! st ,i ,(vector-ref vv i))
                                  r))))
              (let loop ((fvfv fvfv))
                (unless (null? fvfv)
                  (vector-set! st
-                              (+ (list-position (car fvfv) ff) 1)
+                              (add1 (list-position (car fvfv) ff))
                               (cadr fvfv))
                  (loop (cddr fvfv))))
              st))
@@ -48,8 +48,8 @@
                       (procs '()))
              (if (>= i n+1)
                  procs
-                 (loop (+ i 1)
-                       (let ((f (symbol->string (list-ref ff (- i 1)))))
+                 (loop (add1 i)
+                       (let ((f (symbol->string (list-ref ff (sub1 i)))))
                          (cons
                           `(define (,(string->symbol
                                       (string-append

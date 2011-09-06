@@ -14,7 +14,7 @@ x
 x
 (define counter 0)
 (define (bump-counter)
-  (set! counter (+ counter 1))
+  (set! counter (add1 counter))
   counter)
 (bump-counter)
 (bump-counter)

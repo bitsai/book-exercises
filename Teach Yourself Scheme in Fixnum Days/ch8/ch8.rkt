@@ -51,6 +51,6 @@
 (define x 1)
 (define y 2)
 (fluid-let ((x 9)
-            (y (+ y 1)))
+            (y (add1 y)))
   (display (+ x y))
   (newline))

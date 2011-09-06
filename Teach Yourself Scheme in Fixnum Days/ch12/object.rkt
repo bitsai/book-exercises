@@ -9,7 +9,7 @@
              (lst lst))
     (cond ((null? lst) #f)
           ((eqv? x (car lst)) i)
-          (else (loop (+ i 1)
+          (else (loop (add1 i)
                       (cdr lst))))))
 
 (define (delete-duplicates lst)
@@ -38,13 +38,13 @@
 (define (make-instance class . slot-value-pairs)
   (let* ((slots (class-slots class))
          (n (length slots))
-         (instance (make-vector (+ n 1))))
+         (instance (make-vector (add1 n))))
     (vector-set! instance 0 class)
     (let loop ((slot-value-pairs slot-value-pairs))
       (if (null? slot-value-pairs)
           instance
           (let ((k (list-position (car slot-value-pairs) slots)))
-            (vector-set! instance (+ k 1) (cadr slot-value-pairs))
+            (vector-set! instance (add1 k) (cadr slot-value-pairs))
             (loop (cddr slot-value-pairs)))))))
 
 (define standard-class (vector 'place-holder
@@ -93,14 +93,14 @@
   (let* ((class (class-of instance))
          (k (list-position slot (class-slots class))))
     (if k
-        (vector-ref instance (+ k 1))
+        (vector-ref instance (add1 k))
         #f)))
 
 (define (set!slot-value instance slot value)
   (let* ((class (class-of instance))
          (k (list-position slot (class-slots class))))
     (if k
-        (vector-set! instance (+ k 1) value)
+        (vector-set! instance (add1 k) value)
         #f)))
 
 (define (create-class-proc direct-supers slots method-names method-vector)

@@ -20,7 +20,7 @@
   (let loop ((i lo))
     (if (> i hi)
         (amb)
-        (amb i (loop (+ i 1))))))
+        (amb i (loop (add1 i))))))
 (define (assert pred)
   (unless pred
     (amb)))
