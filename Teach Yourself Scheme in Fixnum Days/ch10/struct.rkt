@@ -2,7 +2,7 @@
 
 (provide (all-defined-out))
 
-(require (lib "defmacro.ss"))
+(require mzlib/defmacro)
 
 (define (list-position x lst)
   (let loop ((i 0)

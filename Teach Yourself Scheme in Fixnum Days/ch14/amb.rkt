@@ -2,7 +2,7 @@
 
 (provide (all-defined-out))
 
-(require (lib "defmacro.ss"))
+(require mzlib/defmacro)
 
 (define amb-fail '*)
 
