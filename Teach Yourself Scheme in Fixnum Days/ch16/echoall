@@ -1,0 +1,11 @@
+#!/usr/bin/env racket
+
+#lang racket
+
+(let* ((argv (current-command-line-arguments))
+       (argv-count (vector-length argv)))
+  (let loop ((i 0))
+    (unless (>= i argv-count)
+      (display (vector-ref argv i))
+      (newline)
+      (loop (add1 i)))))

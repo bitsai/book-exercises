@@ -1,0 +1,32 @@
+#!/usr/bin/env racket
+
+#lang racket
+
+(define floppy-size 1440000)
+
+(define (split f subfile-prefix)
+  (call-with-input-file f
+    (lambda (i)
+      (let loop ((n 1))
+        (when (copy-to-floppy-sized-subfile i subfile-prefix n)
+          (loop (add1 n)))))))
+
+(define (copy-to-floppy-sized-subfile i subfile-prefix n)
+  (let ((nth-subfile (string-append subfile-prefix "." (number->string n))))
+    (if (file-exists? nth-subfile)
+        (delete-file nth-subfile)
+        (call-with-output-file nth-subfile
+          (lambda (o)
+            (let loop ((k 1))
+              (let ((c (read-byte i)))
+                (if (eof-object? c)
+                    #f
+                    (begin (write-byte c o)
+                           (if (< k floppy-size)
+                               (loop (add1 k))
+                               #t))))))))))
+
+(let* ((argv (current-command-line-arguments))
+       (bigfile (vector-ref argv 0))
+       (subfile-prefix (vector-ref argv 1)))
+  (split bigfile subfile-prefix))
