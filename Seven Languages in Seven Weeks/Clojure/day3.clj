@@ -15,4 +15,25 @@
   (dosync
    (alter accounts update-balance id x)))
 
-;; TODO: sleeping barber
+(defn sleeping-barber []
+  (let [haircuts (atom 0)
+        running (atom true)
+        ;; waiting room has 3 chairs
+        waiting (java.util.concurrent.LinkedBlockingQueue. 3)]
+    ;; customers
+    (future (while @running
+              ;; arrive every 10-30 milliseconds
+              (Thread/sleep (+ 10 (rand-int (inc 20))))
+              ;; enter if waiting room isn't full
+              (.offer waiting "customer")))
+    ;; barber
+    (future (while @running
+              ;; sleep until customer arrives
+              (.take waiting)
+              ;; haircuts take 20 milliseconds
+              (Thread/sleep 20)
+              (swap! haircuts inc)))
+    ;; run for 10 seconds
+    (Thread/sleep 10000)
+    (reset! running false)
+    @haircuts))
