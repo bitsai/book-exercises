@@ -1,4 +1,4 @@
-(ns day1)
+(ns day-1)
 
 (defn big [st n]
   (> (count st) n))

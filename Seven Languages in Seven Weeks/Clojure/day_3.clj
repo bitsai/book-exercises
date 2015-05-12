@@ -1,4 +1,4 @@
-(ns day3)
+(ns day-3)
 
 (def accounts (ref {1 {:balance 1.0}
                     2 {:balance 2.0}

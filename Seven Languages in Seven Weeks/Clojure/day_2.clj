@@ -1,4 +1,4 @@
-(ns day2)
+(ns day-2)
 
 (defmacro unless [test body1 body2]
   `(if (not ~test)
