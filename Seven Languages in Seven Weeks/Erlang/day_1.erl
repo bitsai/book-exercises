@@ -1,5 +1,5 @@
 -module(day_1).
--export([count_words/1, count_to_ten/1]).
+-export([count_words/1, count_to_ten/1, print/1]).
 
 count_words([]) -> 0;
 count_words([X]) when X /= 32 -> 1;
@@ -11,3 +11,6 @@ count_to_ten(X) when X < 10 -> io:format("~w~n", [X]),
                                count_to_ten(X + 1);
 count_to_ten(X) when X > 10 -> io:format("~w~n", [X]),
                                count_to_ten(X - 1).
+
+print(success) -> io:format("success~n");
+print({error, Message}) -> io:format("error: ~s~n", [Message]).
