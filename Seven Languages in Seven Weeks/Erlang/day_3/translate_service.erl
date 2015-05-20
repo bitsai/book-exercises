@@ -1,5 +1,5 @@
 -module(translate_service).
--export([loop/0, translate/2]).
+-export([loop/0, translate/2, start_link/0]).
 
 loop() ->
     receive
@@ -9,6 +9,9 @@ loop() ->
         {From, "blanca"} ->
             From ! "white",
             loop();
+        {From, "morte"} ->
+            From ! "death",
+            exit({translate_service,die,at,erlang:time()});
         {From, _} ->
             From ! "I don't understand.",
             loop()
@@ -19,3 +22,8 @@ translate(To, Word) ->
     receive
         Translation -> Translation
     end.
+
+start_link() ->
+    Pid = spawn_link(fun loop/0),
+    register(translater, Pid),
+    {ok, Pid}.
