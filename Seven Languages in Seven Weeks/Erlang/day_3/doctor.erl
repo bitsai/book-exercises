@@ -1,5 +1,5 @@
 -module(doctor).
--export([loop/0]).
+-export([loop/0, start_link/0]).
 
 loop() ->
     process_flag(trap_exit, true),
@@ -14,3 +14,8 @@ loop() ->
             self() ! new,
             loop()
     end.
+
+start_link() ->
+    Pid = spawn_link(fun loop/0),
+    register(doc, Pid),
+    {ok, Pid}.
