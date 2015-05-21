@@ -9,7 +9,7 @@ loop() ->
         {From, "blanca"} ->
             From ! "white",
             loop();
-        {From, "morte"} ->
+        {From, "muerte"} ->
             From ! "death",
             exit({translate_service,die,at,erlang:time()});
         {From, _} ->
