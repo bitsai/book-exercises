@@ -7,7 +7,7 @@ init(_Args) ->
     {ok, logging}.
 
 start_link() ->
-    gen_server:start_link({local, log_server}, log_server, [], []).
+    gen_server:start_link({local, logger}, log_server, [], []).
 
 handle_call(Msg, _From, State) ->
     Formatted = io_lib:format("~s\n", [Msg]),
@@ -22,5 +22,5 @@ handle_call(Msg, _From, State) ->
 %% {ok,log_server}
 %% 2> log_server:start_link().
 %% {ok,<0.85.0>}
-%% 3> gen_server:call(log_server, "hello world").
+%% 3> gen_server:call(logger, "hello world").
 %% "hello world"

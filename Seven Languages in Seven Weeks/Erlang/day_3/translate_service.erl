@@ -11,7 +11,7 @@ loop() ->
             loop();
         {From, "muerte"} ->
             From ! "death",
-            exit({translate_service,die,at,erlang:time()});
+            exit({translater,die,at,erlang:time()});
         {From, _} ->
             From ! "I don't understand.",
             loop()
@@ -47,7 +47,7 @@ monitor() ->
 %% 4> translate_service:translate(translater, "casa").
 %% "house"
 %% 5> translate_service:translate(translater, "muerte").
-%% The translater <0.41.0> died with reason {translate_service,die,at,{2,11,43}}. Restarting.
+%% The translater <0.41.0> died with reason {translater,die,at,{2,11,43}}. Restarting.
 %% "death"
 %% Creating and monitoring translater.
 %% 6> translate_service:translate(translater, "blanca").
