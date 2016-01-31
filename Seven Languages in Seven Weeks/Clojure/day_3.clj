@@ -1,19 +1,30 @@
 (ns day-3)
 
-(def accounts (ref {1 {:balance 1.0}
-                    2 {:balance 2.0}
-                    3 {:balance 3.0}}))
+(def accounts (ref [{:balance 1.0}
+                    {:balance 2.0}
+                    {:balance 3.0}]))
 
-(defn update-balance [accts id delta]
-  (update-in accts [id :balance] + delta))
+(defn- update-balance [accts idx delta]
+  (update-in accts [idx :balance] + delta))
 
-(defn debit [id x]
+(defn debit! [idx x]
   (dosync
-   (alter accounts update-balance id (- x))))
+   (alter accounts update-balance idx (- x))))
 
-(defn credit [id x]
+(defn credit! [idx x]
   (dosync
-   (alter accounts update-balance id x)))
+   (alter accounts update-balance idx x)))
+
+;; day-3> (clojure.pprint/pprint accounts)
+;; #<Ref@4889e2b2: [{:balance 1.0} {:balance 2.0} {:balance 3.0}]>
+;; nil
+;; day-3> (debit! 0 1.0)
+;; [{:balance 0.0} {:balance 2.0} {:balance 3.0}]
+;; day-3> (credit! 0 5.0)
+;; [{:balance 5.0} {:balance 2.0} {:balance 3.0}]
+;; day-3> (clojure.pprint/pprint accounts)
+;; #<Ref@4889e2b2: [{:balance 5.0} {:balance 2.0} {:balance 3.0}]>
+;; nil
 
 (defn sleeping-barber []
   (let [haircuts (atom 0)
@@ -37,3 +48,6 @@
     (Thread/sleep 10000)
     (reset! running false)
     @haircuts))
+
+;; day-3> (sleeping-barber)
+;; 407
