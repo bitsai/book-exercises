@@ -19,7 +19,7 @@ min([X|Tail], TailMin) :-
     min(Tail, TailMin),
     X > TailMin.
 
-%% | ?- min([5,3,1,2,4], What).           
+%% | ?- min([5,3,1,2,4], What).
 
 %% What = 1 ? a
 
@@ -27,13 +27,13 @@ min([X|Tail], TailMin) :-
 
 srt([], []).
 srt([X], [X]).
-srt([X|Tail], [X, Y|BiggerThanY]) :-
+srt([X|Tail], Sorted) :-
     srt(Tail, [Y|BiggerThanY]),
-    X =< Y.
-srt([X|Tail], [Y|XAndBiggerThanY]) :-
-    srt(Tail, [Y|BiggerThanY]),
-    X > Y,
-    srt([X|BiggerThanY], XAndBiggerThanY).
+    (   X =< Y
+     -> Sorted = [X, Y|BiggerThanY]
+     ;  srt([X|BiggerThanY], XAndBiggerThanY),
+        Sorted = [Y|XAndBiggerThanY]
+    ).
 
 %% | ?- srt([5,3,1,2,4], What).
 
