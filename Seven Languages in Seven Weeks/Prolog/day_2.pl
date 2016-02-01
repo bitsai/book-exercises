@@ -1,7 +1,9 @@
-rev([], []).
-rev([Head|Tail], Reversed) :-
-    rev(Tail, Xs),
-    append(Xs, [Head], Reversed).
+revAcc([], Acc, Acc).
+revAcc([X|Tail], Acc, Reversed) :-
+    revAcc(Tail, [X|Acc], Reversed).
+
+rev(A, B) :-
+    revAcc(A, [], B).
 
 %% | ?- rev([1,2,3,4,5], What).
 
@@ -10,12 +12,12 @@ rev([Head|Tail], Reversed) :-
 %% yes
 
 min([X], X).
-min([X|[Y|Tail]], Z) :-
-    X < Y,
-    min([X|Tail], Z).
-min([X|[Y|Tail]], Z) :-
-    X >= Y,
-    min([Y|Tail], Z).
+min([X|Tail], X) :-
+    min(Tail, TailMin),
+    X =< TailMin.
+min([X|Tail], TailMin) :-
+    min(Tail, TailMin),
+    X > TailMin.
 
 %% | ?- min([5,3,1,2,4], What).           
 
@@ -23,18 +25,17 @@ min([X|[Y|Tail]], Z) :-
 
 %% no
 
-sort1([], []).
-sort1([X], [X]).
-sort1([X|Tail], [X|Sorted]) :-
-    sort1(Tail, [Y|Tail2]),
-    X < Y,
-    sort1([Y|Tail2], Sorted).
-sort1([X|Tail], [Y|Sorted]) :-
-    sort1(Tail, [Y|Tail2]),
-    X >= Y,
-    sort1([X|Tail2], Sorted).
+srt([], []).
+srt([X], [X]).
+srt([X|Tail], [X, Y|BiggerThanY]) :-
+    srt(Tail, [Y|BiggerThanY]),
+    X =< Y.
+srt([X|Tail], [Y|XAndBiggerThanY]) :-
+    srt(Tail, [Y|BiggerThanY]),
+    X > Y,
+    srt([X|BiggerThanY], XAndBiggerThanY).
 
-%% | ?- sort1([5,3,1,2,4], What).
+%% | ?- srt([5,3,1,2,4], What).
 
 %% What = [1,2,3,4,5] ? a
 
