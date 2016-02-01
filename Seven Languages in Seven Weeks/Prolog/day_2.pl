@@ -12,12 +12,12 @@ rev(A, B) :-
 %% yes
 
 min([X], X).
-min([X|Tail], X) :-
+min([X|Tail], Min) :-
     min(Tail, TailMin),
-    X =< TailMin.
-min([X|Tail], TailMin) :-
-    min(Tail, TailMin),
-    X > TailMin.
+    (   X =< TailMin
+     -> Min = X
+     ;  Min = TailMin
+    ).
 
 %% | ?- min([5,3,1,2,4], What).
 
