@@ -1,9 +1,10 @@
-revAcc([], Acc, Acc).
-revAcc([X|Tail], Acc, Reversed) :-
-    revAcc(Tail, [X|Acc], Reversed).
+rev_acc([], Acc, Acc).
+rev_acc([Head|Tail], Acc, Reversed) :-
+    %% insert Head as head of Acc and recurse
+    rev_acc(Tail, [Head|Acc], Reversed).
 
-rev(A, B) :-
-    revAcc(A, [], B).
+rev(List, Reversed) :-
+    rev_acc(List, [], Reversed).
 
 %% | ?- rev([1,2,3,4,5], What).
 
@@ -12,12 +13,14 @@ rev(A, B) :-
 %% yes
 
 min([X], X).
-min([X|Tail], Min) :-
-    min(Tail, TailMin),
-    (   X =< TailMin
-     -> Min = X
-     ;  Min = TailMin
-    ).
+min([Head1, Head2|Tail], Min) :-
+    %% if Head1 <= Head2, discard Head2 and recurse
+    Head1 =< Head2,
+    min([Head1|Tail], Min).
+min([Head1, Head2|Tail], Min) :-
+    %% if Head1 > Head2, discard Head1 and recurse
+    Head1 > Head2,
+    min([Head2|Tail], Min).
 
 %% | ?- min([5,3,1,2,4], What).
 
@@ -25,17 +28,24 @@ min([X|Tail], Min) :-
 
 %% no
 
-srt([], []).
-srt([X], [X]).
-srt([X|Tail], Sorted) :-
-    srt(Tail, [Y|BiggerThanY]),
-    (   X =< Y
-     -> Sorted = [X, Y|BiggerThanY]
-     ;  srt([X|BiggerThanY], XAndBiggerThanY),
-        Sorted = [Y|XAndBiggerThanY]
-    ).
+insert(X, [], [X]).
+insert(X, [Head|Tail], [X, Head|Tail]) :-
+    %% if X <= Head, insert X as head
+    X =< Head.
+insert(X, [Head|Tail], [Head|Tail2]) :-
+    %% if X > Head, insert X to proper position in Tail
+    X > Head,
+    insert(X, Tail, Tail2).
 
-%% | ?- srt([5,3,1,2,4], What).
+isort_acc([], Acc, Acc).
+isort_acc([Head|Tail], Acc, Sorted) :-
+    %% insert Head to proper position in Acc and recurse
+    insert(Head, Acc, Acc2),
+    isort_acc(Tail, Acc2, Sorted).
+
+isort(List, Sorted) :- isort_acc(List, [], Sorted).
+
+%% | ?- isort([5,3,1,2,4], What).
 
 %% What = [1,2,3,4,5] ? a
 
