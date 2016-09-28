@@ -30,7 +30,7 @@ int main() {
   }
 
   for (vec_sz i = 0; i < words.size(); ++i)
-    cout << words[i] << " appeared " << counts[ ] << " times" << endl;
+    cout << words[i] << " appeared " << counts[i] << " times" << endl;
 
   return 0;
 }
