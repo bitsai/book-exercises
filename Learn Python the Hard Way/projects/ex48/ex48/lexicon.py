@@ -4,16 +4,16 @@ stop_words = ('the', 'in', 'of', 'from', 'at', 'it')
 nouns = ('door', 'bear', 'princess', 'cabinet')
 
 def get_tuple(word):
-    test_word = word.lower()
+    test_word = word
 
     if test_word in directions:
-        return ('direction', word)
+        return ('direction', word.lower())
     elif test_word in verbs:
-        return ('verb', word)
+        return ('verb', word.lower())
     elif test_word in stop_words:
-        return ('stop', word)
+        return ('stop', word.lower())
     elif test_word in nouns:
-        return ('noun', word)
+        return ('noun', word.lower())
     elif test_word.isdigit():
         return ('number', int(word))
     else:
