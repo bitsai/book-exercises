@@ -4,19 +4,20 @@ stop_words = ('the', 'in', 'of', 'from', 'at', 'it')
 nouns = ('door', 'bear', 'princess', 'cabinet')
 
 def get_tuple(word):
-    test_word = word.lower()
+    lowercased = word.lower()
 
-    if test_word in directions:
-        return ('direction', word)
-    elif test_word in verbs:
-        return ('verb', word)
-    elif test_word in stop_words:
-        return ('stop', word)
-    elif test_word in nouns:
-        return ('noun', word)
-    elif test_word.isdigit():
-        return ('number', int(word))
+    if lowercased in directions:
+        return ('direction', lowercased)
+    elif lowercased in verbs:
+        return ('verb', lowercased)
+    elif lowercased in stop_words:
+        return ('stop', lowercased)
+    elif lowercased in nouns:
+        return ('noun', lowercased)
+    elif lowercased.isdigit():
+        return ('number', int(lowercased))
     else:
+        # in case of error, return word with original casing
         return ('error', word)
 
 def scan(sentence):
