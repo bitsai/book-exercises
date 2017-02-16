@@ -76,7 +76,7 @@ void HCat_Pic::display(ostream& os, ht_sz row, bool do_pad) const {
     left_row = (row < v_pad) ? left->height() : row - v_pad;
   }
 
-  left->display(os, left_row, do_pad || row < right->height());
+  left->display(os, left_row, do_pad || right_row < right->height());
   right->display(os, right_row, do_pad);
 }
 
