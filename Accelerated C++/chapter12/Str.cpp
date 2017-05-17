@@ -22,7 +22,7 @@ Str& Str::operator =(const Str& rhs) {
 Str::size_type Str::copy(iterator s, size_type n, size_type pos) const {
   if (pos > size()) throw out_of_range("pos > size()");
   size_t copy_length = min(n, size() - pos);
-  ::copy(chars + pos, chars + copy_length, s);
+  ::copy(chars + pos, chars + pos + copy_length, s);
   return copy_length;
 }
 
