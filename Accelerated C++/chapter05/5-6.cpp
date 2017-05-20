@@ -31,9 +31,24 @@ vector<Student_info> extract_fails(vector<Student_info>& students) {
   vector<Student_info>::size_type i = 0;
   vector<Student_info>::size_type rawsize = students.size();
 #endif
+  vector<student_info>::size_type rawsize = students.size();
+	while (i != students.size()) {
+    if (fgrade(students[i])) {
+      fail.push_back(students[i]);
+    }
+    else {
+      students.insert(students.begin(), students[i]);
+      ++i;
+    }
+    ++i;
+  }
+  
+  students.resize(rawsize - fail.size());
+  return fail;
+}
 
   // invariant: elements `[0,' `i)' of `students' represent passing grades
-  while (i != students.size()) {
+/*  while (i != students.size()) {
     if (fgrade(students[i])) {
       fail.push_back(students[i]);
     } else {
@@ -46,7 +61,7 @@ vector<Student_info> extract_fails(vector<Student_info>& students) {
   students.resize(rawsize - fail.size());
 
   return fail;
-}
+}*/
 
 int main() {
   vector<Student_info> vs;
