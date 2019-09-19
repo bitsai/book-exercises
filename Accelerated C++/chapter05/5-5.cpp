@@ -15,9 +15,16 @@ vector<string> center(const vector<string>& picture) {
 
   for (vector<string>::const_iterator i = picture.begin(); 
        i != picture.end(); ++i) {
-    vector<string>::size_type padding = (max_length - i->size()) / 2;
-    string new_line(padding, ' ');
-    new_line += *i;
+    vector<string>::size_type difference = max_length - i->size();
+    if (difference % 2 == 0) {
+    	vector<string>::size_type padding = (difference) / 2;
+    }
+    else {
+	vector<string>::size_type padding = (difference-1) / 2;
+    	
+    }
+	string new_line(padding, ' ');
+    	new_line += *i;
     new_picture.push_back(new_line);
   }
 
