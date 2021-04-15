@@ -21,7 +21,8 @@ int main()
    {
         cout << "Enter Length: ";
         cin >> cols;
-        rows = cols;
+        cout << "Enter Breadth: ";
+        cin >> rows;
         cout << endl;
        
        const string spaces(cols - 2, ' ');
